@@ -1,1 +1,2196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Adventure Path: Emoji Quest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* ------------------------------
+       GLOBAL THEME & RESET
+       ------------------------------ */
 
+    :root {
+      color-scheme: light dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    body[data-theme="dark"] {
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --bg-elevated-soft: #020617;
+      --bg-board: radial-gradient(circle at 10% 20%, #052e16 0, #020617 50%);
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --accent: #facc15;
+      --accent-soft: rgba(250, 204, 21, 0.15);
+      --accent-strong: #f97316;
+      --danger: #fb7185;
+      --bonus: #22c55e;
+      --penalty: #fb7185;
+      --board-line: rgba(15, 23, 42, 0.9);
+      --shadow-soft: 0 18px 30px rgba(15, 23, 42, 0.7);
+      --border-subtle: rgba(148, 163, 184, 0.3);
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    body[data-theme="light"] {
+      --bg: #f3f4f6;
+      --bg-elevated: #ffffff;
+      --bg-elevated-soft: #e5f3ff;
+      --bg-board: radial-gradient(circle at 10% 20%, #dcfce7 0, #e5e7eb 50%);
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #ea580c;
+      --accent-soft: rgba(234, 88, 12, 0.12);
+      --accent-strong: #c2410c;
+      --danger: #b91c1c;
+      --bonus: #16a34a;
+      --penalty: #b91c1c;
+      --board-line: rgba(148, 163, 184, 0.9);
+      --shadow-soft: 0 16px 30px rgba(15, 23, 42, 0.15);
+      --border-subtle: rgba(148, 163, 184, 0.6);
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ------------------------------
+       APP SHELL
+       ------------------------------ */
+
+    .app-shell {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem clamp(1.5rem, 3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    header.app-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .app-title {
+      font-size: clamp(1.6rem, 2vw, 2rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .app-title-badge {
+      font-size: 0.8rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: var(--muted);
+      max-width: 34rem;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .theme-toggle-btn {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      padding: 0.4rem 0.75rem;
+      font-size: 0.85rem;
+      background: radial-gradient(circle at 0% 0%, rgba(250, 204, 21, 0.16), transparent);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: background-color 0.15s ease, transform 0.1s ease,
+        box-shadow 0.15s ease;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.35);
+    }
+
+    .theme-toggle-btn span {
+      font-weight: 600;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.5);
+      background-color: rgba(15, 23, 42, 0.9);
+    }
+
+    .theme-toggle-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.6);
+    }
+
+    .pill-note {
+      padding: 0.1rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px dashed var(--border-subtle);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ------------------------------
+       MAIN LAYOUT
+       ------------------------------ */
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      .main-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      border-radius: 1.1rem;
+      background: linear-gradient(
+          145deg,
+          rgba(148, 163, 184, 0.1),
+          rgba(15, 23, 42, 0.6)
+        ),
+        linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(59, 130, 246, 0.06));
+      padding: 1rem;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    body[data-theme="light"] .panel {
+      background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.95),
+          rgba(239, 246, 255, 0.98)
+        );
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .panel-header h2 {
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .panel-header h2 span.icon {
+      font-size: 1.1rem;
+    }
+
+    .panel-header-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ------------------------------
+       BOARD
+       ------------------------------ */
+
+    .board-wrapper {
+      background: var(--bg-board);
+      border-radius: 0.9rem;
+      padding: 0.9rem;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      box-shadow: inset 0 0 80px rgba(15, 23, 42, 0.8);
+    }
+
+    .board-wrapper::before,
+    .board-wrapper::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .board-wrapper::before {
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(250, 204, 21, 0.35), transparent);
+      top: -120px;
+      right: -80px;
+      filter: blur(1px);
+    }
+
+    .board-wrapper::after {
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(34, 197, 94, 0.4), transparent);
+      bottom: -110px;
+      left: -70px;
+      filter: blur(1px);
+    }
+
+    .board-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0.35rem;
+      isolation: isolate;
+    }
+
+    .board-cell {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: 0.65rem;
+      background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.9),
+        rgba(31, 41, 55, 0.9)
+      );
+      border: 1px solid var(--board-line);
+      padding: 0.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: #e5e7eb;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.7);
+      overflow: hidden;
+      transform: translateY(0);
+      transition: transform 0.15s ease, box-shadow 0.15s ease,
+        border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .board-cell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+          135deg,
+          rgba(248, 250, 252, 0.03),
+          transparent 40%,
+          rgba(15, 23, 42, 0.7) 100%
+        ),
+        radial-gradient(circle at 0 0, rgba(239, 68, 68, 0.16), transparent 60%);
+      mix-blend-mode: screen;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .board-cell-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      height: 100%;
+    }
+
+    .board-cell .cell-id {
+      font-size: 0.7rem;
+      font-weight: 700;
+      opacity: 0.85;
+      align-self: flex-start;
+      padding: 0.1rem 0.35rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .board-cell .cell-caption {
+      font-size: 0.65rem;
+      opacity: 0.85;
+      max-width: 100%;
+      line-height: 1.2;
+    }
+
+    .board-cell .cell-markers {
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 0.05rem;
+      margin-top: auto;
+    }
+
+    .token {
+      font-size: 1rem;
+      filter: drop-shadow(0 0 4px rgba(15, 23, 42, 0.7));
+    }
+
+    .board-cell.start {
+      background: linear-gradient(135deg, #14532d, #166534);
+      border-color: rgba(74, 222, 128, 0.9);
+    }
+
+    .board-cell.start .cell-caption::before {
+      content: "🏕️ ";
+    }
+
+    .board-cell.finish {
+      background: linear-gradient(135deg, #854d0e, #ca8a04);
+      border-color: rgba(250, 204, 21, 0.9);
+    }
+
+    .board-cell.finish .cell-caption::before {
+      content: "🏆 ";
+    }
+
+    .board-cell.special {
+      box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.2),
+        0 8px 16px rgba(15, 23, 42, 0.9);
+    }
+
+    .board-cell.special.bonus {
+      background: linear-gradient(135deg, #166534, #22c55e);
+      border-color: rgba(74, 222, 128, 0.9);
+    }
+
+    .board-cell.special.bonus .cell-caption::before {
+      content: "✨ ";
+    }
+
+    .board-cell.special.penalty {
+      background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+      border-color: rgba(248, 113, 113, 0.95);
+    }
+
+    .board-cell.special.penalty .cell-caption::before {
+      content: "⚠️ ";
+    }
+
+    .board-cell.special.stuck {
+      background: linear-gradient(135deg, #052e16, #4ade80);
+      border-color: rgba(190, 242, 100, 0.9);
+    }
+
+    .board-cell.special.stuck .cell-caption::before {
+      content: "🪤 ";
+    }
+
+    .board-cell:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
+      border-color: rgba(250, 204, 21, 0.5);
+    }
+
+    .board-legend {
+      margin-top: 0.65rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .legend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    body[data-theme="light"] .board-legend .legend-pill {
+      background: rgba(229, 231, 235, 0.85);
+    }
+
+    .legend-color {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.3);
+    }
+
+    .legend-color.bonus {
+      background: #22c55e;
+    }
+
+    .legend-color.penalty {
+      background: #fb7185;
+    }
+
+    .legend-color.stuck {
+      background: #4ade80;
+    }
+
+    /* ------------------------------
+       CONTROLS & STATUS
+       ------------------------------ */
+
+    .controls-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .section-block {
+      border-radius: 0.85rem;
+      padding: 0.75rem 0.85rem;
+      background: radial-gradient(circle at 0 0, var(--accent-soft), transparent),
+        linear-gradient(
+          135deg,
+          rgba(15, 23, 42, 0.9),
+          rgba(15, 23, 42, 0.8)
+        );
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    body[data-theme="light"] .section-block {
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.98),
+        rgba(239, 246, 255, 0.95)
+      );
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .section-header h3 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--muted);
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+    }
+
+    .section-header h3 span {
+      font-size: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* Setup controls */
+
+    .setup-grid {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+    }
+
+    .field-row label {
+      font-weight: 600;
+      min-width: 4.8rem;
+    }
+
+    .field-row select,
+    .field-row input[type="text"] {
+      flex: 1;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-subtle);
+      padding: 0.3rem 0.5rem;
+      font-size: 0.85rem;
+      background-color: rgba(15, 23, 42, 0.7);
+      color: var(--text);
+    }
+
+    body[data-theme="light"] .field-row select,
+    body[data-theme="light"] .field-row input[type="text"] {
+      background-color: #f9fafb;
+    }
+
+    .players-config {
+      margin-top: 0.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .player-config-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1.1fr;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      align-items: center;
+    }
+
+    .player-config-row label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.15rem;
+    }
+
+    .player-config-row .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .helper-text {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      padding: 0.35rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: radial-gradient(circle at 0 0, var(--accent-soft), transparent),
+        linear-gradient(135deg, #0f172a, #020617);
+      color: #f9fafb;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: background-color 0.1s ease, transform 0.1s ease,
+        box-shadow 0.1s ease, border-color 0.1s ease;
+      box-shadow: 0 5px 14px rgba(15, 23, 42, 0.7);
+    }
+
+    body[data-theme="light"] .btn {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      border-color: rgba(248, 250, 252, 0.8);
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
+      border-color: rgba(250, 204, 21, 0.6);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.9);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn.secondary {
+      background: transparent;
+      color: var(--muted);
+      border-style: dashed;
+      box-shadow: none;
+    }
+
+    .btn.secondary:hover:not(:disabled) {
+      background: rgba(15, 23, 42, 0.5);
+    }
+
+    body[data-theme="light"] .btn.secondary:hover:not(:disabled) {
+      background: rgba(209, 213, 219, 0.7);
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #b91c1c, #fb7185);
+      border-color: rgba(254, 226, 226, 0.7);
+      color: #fef2f2;
+    }
+
+    /* Game controls */
+
+    .dice-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+    }
+
+    .dice-value {
+      min-width: 3.2rem;
+      min-height: 2.1rem;
+      border-radius: 0.7rem;
+      border: 1px solid rgba(248, 250, 252, 0.12);
+      background: radial-gradient(
+          circle at 20% 15%,
+          rgba(248, 250, 252, 0.15),
+          transparent 60%
+        ),
+        radial-gradient(circle at 80% 90%, rgba(249, 115, 22, 0.18), transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      box-shadow: inset 0 0 12px rgba(15, 23, 42, 0.7);
+    }
+
+    .dice-caption {
+      font-size: 0.73rem;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    /* Status */
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: 0.45rem;
+      font-size: 0.8rem;
+    }
+
+    .status-pill {
+      border-radius: 0.7rem;
+      padding: 0.4rem 0.5rem;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      min-height: 2.4rem;
+    }
+
+    body[data-theme="light"] .status-pill {
+      background: rgba(243, 244, 246, 0.98);
+    }
+
+    .status-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--muted);
+    }
+
+    .status-value {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      flex-wrap: wrap;
+    }
+
+    .status-tag {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+    }
+
+    .status-list {
+      margin: 0;
+      padding-left: 1.1rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* Log */
+
+    .log-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 190px;
+      overflow-y: auto;
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 0.15rem;
+    }
+
+    .log-item {
+      padding: 0.2rem 0.45rem;
+      border-radius: 0.55rem;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: baseline;
+    }
+
+    body[data-theme="light"] .log-item {
+      background: rgba(243, 244, 246, 0.96);
+    }
+
+    .log-time {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.68rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .log-text {
+      flex: 1;
+    }
+
+    .log-empty {
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 0.25rem 0;
+    }
+
+    /* ------------------------------
+       MODAL
+       ------------------------------ */
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(
+          circle at 10% 0,
+          rgba(250, 204, 21, 0.2),
+          transparent 40%
+        ),
+        rgba(15, 23, 42, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-backdrop.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      width: min(420px, 100% - 2rem);
+      border-radius: 0.9rem;
+      background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.98),
+        rgba(31, 41, 55, 1)
+      );
+      border: 1px solid rgba(250, 204, 21, 0.45);
+      padding: 0.9rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+      transform: translateY(12px) scale(0.98);
+      opacity: 0;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .modal-backdrop.visible .modal {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    body[data-theme="light"] .modal {
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.98),
+        rgba(249, 250, 251, 0.99)
+      );
+      border-color: rgba(234, 88, 12, 0.6);
+    }
+
+    .modal-title {
+      font-size: 1rem;
+      margin: 0 0 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .modal-title span.icon {
+      font-size: 1.15rem;
+    }
+
+    .modal-message {
+      font-size: 0.85rem;
+      margin: 0 0 0.7rem;
+      color: var(--muted);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.4rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Ensure modal buttons visually distinct */
+
+    .modal .btn {
+      box-shadow: none;
+    }
+
+    /* ------------------------------
+       FOOTER
+       ------------------------------ */
+
+    footer.app-footer {
+      padding: 0.9rem clamp(1.5rem, 3vw, 2rem);
+      border-top: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 0.8rem;
+      background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.98),
+        rgba(15, 23, 42, 0.93)
+      );
+      color: var(--muted);
+    }
+
+    body[data-theme="light"] footer.app-footer {
+      background: linear-gradient(
+        135deg,
+        rgba(249, 250, 251, 0.98),
+        rgba(243, 244, 246, 0.98)
+      );
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+    }
+
+    .footer-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .footer-text p {
+      margin: 0;
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .bug-btn {
+      border-radius: 999px;
+      border: 1px dashed rgba(248, 250, 252, 0.35);
+      padding: 0.3rem 0.75rem;
+      font-size: 0.78rem;
+      background: transparent;
+      color: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      transition: background-color 0.1s ease, transform 0.08s ease;
+    }
+
+    body[data-theme="light"] .bug-btn {
+      border-color: rgba(148, 163, 184, 0.7);
+    }
+
+    .bug-btn:hover {
+      background: rgba(15, 23, 42, 0.7);
+      transform: translateY(-1px);
+    }
+
+    body[data-theme="light"] .bug-btn:hover {
+      background: rgba(209, 213, 219, 0.7);
+    }
+
+    .attribution-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .attribution-trigger {
+      border: none;
+      background: none;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-decoration: underline dotted;
+      cursor: pointer;
+      padding: 0.1rem 0.2rem;
+    }
+
+    .attribution-tooltip {
+      position: absolute;
+      bottom: 130%;
+      right: 0;
+      width: min(280px, 80vw);
+      background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.98),
+        rgba(15, 23, 42, 0.94)
+      );
+      color: #e5e7eb;
+      border-radius: 0.6rem;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      padding: 0.5rem 0.65rem;
+      font-size: 0.72rem;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.9);
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+      transition: opacity 0.12s ease, transform 0.12s ease;
+      z-index: 50;
+    }
+
+    body[data-theme="light"] .attribution-tooltip {
+      background: #111827;
+    }
+
+    .attribution-trigger:focus + .attribution-tooltip,
+    .attribution-wrapper:hover .attribution-tooltip {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .attribution-tooltip strong {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .attribution-tooltip ul {
+      margin: 0;
+      padding-left: 1rem;
+    }
+
+    .attribution-tooltip li {
+      margin: 0.08rem 0;
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="title-group">
+        <div class="app-title">
+          <span>🗺️ Adventure Path</span>
+          <span class="app-title-badge">Emoji Quest</span>
+        </div>
+        <p class="subtitle">
+          Roll the dice, move your emoji explorers through the jungle board, and be the
+          first to reach the glowing gate at the end. Watch for shortcuts, traps, and
+          sticky spaces that only free you on a roll of 4–6.
+        </p>
+      </div>
+      <div class="header-actions">
+        <button
+          id="theme-toggle"
+          class="theme-toggle-btn"
+          type="button"
+          aria-pressed="true"
+          aria-label="Switch color theme"
+        >
+          <span>🌙</span>
+          <span>Dark</span>
+        </button>
+        <div class="pill-note">
+          2–4 players · keyboard & mouse friendly
+        </div>
+      </div>
+    </header>
+
+    <main class="main-layout">
+      <!-- BOARD PANEL -->
+      <section class="panel" aria-labelledby="board-heading">
+        <div class="panel-header">
+          <h2 id="board-heading">
+            <span class="icon">🎲</span> Jungle Board
+          </h2>
+          <div class="panel-header-subtitle">
+            Roll to move. Special tiles may help… or send you backwards.
+          </div>
+        </div>
+
+        <div class="board-wrapper" aria-label="Adventure game board">
+          <div id="board-grid" class="board-grid"></div>
+        </div>
+
+        <div class="board-legend" aria-label="Board legend">
+          <div class="legend-pill">
+            <span class="legend-color bonus" aria-hidden="true"></span>
+            <span>Bonus tile: move ahead or roll again</span>
+          </div>
+          <div class="legend-pill">
+            <span class="legend-color penalty" aria-hidden="true"></span>
+            <span>Penalty tile: slip backwards</span>
+          </div>
+          <div class="legend-pill">
+            <span class="legend-color stuck" aria-hidden="true"></span>
+            <span>Stuck tile: roll 4, 5, or 6 to escape</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTROL PANEL -->
+      <section class="panel" aria-label="Controls and status">
+        <div class="panel-header">
+          <h2>
+            <span class="icon">🧭</span> Camp Control
+          </h2>
+          <div class="panel-header-subtitle">
+            Name your explorers, choose emojis, and guide each turn.
+          </div>
+        </div>
+
+        <div class="controls-section">
+          <!-- Setup -->
+          <section class="section-block" aria-labelledby="setup-heading">
+            <div class="section-header">
+              <h3 id="setup-heading">
+                <span>🧑‍🤝‍🧑</span> Players
+              </h3>
+              <p class="section-subtitle">Choose 2–4 explorers & their tokens.</p>
+            </div>
+
+            <div class="setup-grid">
+              <div class="field-row">
+                <label for="num-players">Players</label>
+                <select id="num-players" name="num-players">
+                  <option value="2">2 players</option>
+                  <option value="3">3 players</option>
+                  <option value="4">4 players</option>
+                </select>
+              </div>
+
+              <div class="players-config" id="players-config" aria-live="polite">
+                <!-- Populated by JS -->
+              </div>
+
+              <p class="helper-text">
+                Each emoji token can be used by <strong>only one</strong> player.
+              </p>
+
+              <div class="btn-row">
+                <button id="start-game-btn" class="btn" type="button">
+                  <span>Start Game</span>
+                  <span aria-hidden="true">▶️</span>
+                </button>
+                <button
+                  id="reset-game-btn"
+                  class="btn secondary"
+                  type="button"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Dice & Turn -->
+          <section class="section-block" aria-labelledby="turn-heading">
+            <div class="section-header">
+              <h3 id="turn-heading">
+                <span>🎲</span> Turn
+              </h3>
+              <p class="section-subtitle">
+                Roll to advance along the path. Highest roll wins freedom.
+              </p>
+            </div>
+
+            <div class="dice-display">
+              <div>
+                <button
+                  id="roll-dice-btn"
+                  class="btn"
+                  type="button"
+                  disabled
+                >
+                  <span>Roll Dice</span>
+                  <span aria-hidden="true">🎲</span>
+                </button>
+                <div class="dice-caption">
+                  Dice can also be activated with keyboard on this button.
+                </div>
+              </div>
+              <div aria-label="Current dice roll">
+                <div id="dice-value" class="dice-value">–</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Status -->
+          <section class="section-block" aria-labelledby="status-heading">
+            <div class="section-header">
+              <h3 id="status-heading">
+                <span>📡</span> Status
+              </h3>
+              <p class="section-subtitle">Track whose turn it is and key events.</p>
+            </div>
+
+            <div class="status-grid" aria-live="polite">
+              <div class="status-pill">
+                <div class="status-label">Current explorer</div>
+                <div class="status-value" id="current-player">
+                  –
+                </div>
+              </div>
+              <div class="status-pill">
+                <div class="status-label">Board position</div>
+                <div class="status-value" id="current-player-position">
+                  –
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 0.45rem;">
+              <ul id="log-list" class="log-list" aria-label="Recent game log">
+                <li class="log-empty">Log will appear here once the game begins.</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Live region for screen readers -->
+  <div id="aria-announcer" class="sr-only" aria-live="polite"></div>
+
+  <!-- MODAL (shared for game events + bug report) -->
+  <div
+    id="modal-backdrop"
+    class="modal-backdrop hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+    aria-describedby="modal-message"
+  >
+    <div class="modal" id="modal">
+      <h2 id="modal-title" class="modal-title">
+        <span class="icon" aria-hidden="true">🔔</span>
+        <span>Adventure Message</span>
+      </h2>
+      <p id="modal-message" class="modal-message">
+        An event on the board will be described here.
+      </p>
+
+      <!-- Default button (for game events) -->
+      <div class="modal-actions">
+        <button
+          id="close-modal-btn"
+          type="button"
+          class="btn secondary"
+        >
+          OK
+        </button>
+      </div>
+
+      <!-- NEW: Buttons for bug report (hidden by default) -->
+      <div
+        id="bug-report-actions"
+        class="modal-actions hidden"
+      >
+        <button
+          id="bug-report-cancel-btn"
+          type="button"
+          class="btn secondary"
+        >
+          Cancel
+        </button>
+        <button
+          id="bug-report-confirm-btn"
+          type="button"
+          class="btn"
+        >
+          Open Gmail
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIO PLACEHOLDERS -->
+  <audio
+    id="dice-sound"
+    src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/rolling-dice.mp3"
+    preload="auto"
+  >
+  
+  </audio>
+  <audio
+    id="event-sound"
+    src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/bonus.mp3"
+    preload="auto"
+  >
+  </audio>
+  <audio
+    id="win-sound"
+    src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/rolling-dice.mp3"
+    preload="auto"
+  >
+  </audio>
+
+  <!-- FOOTER -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div class="footer-text">
+        <p>
+          This site is maintained by Daniel Navas, MA, CCC-SLP.
+        </p>
+      </div>
+      <div class="footer-actions">
+        <button
+          id="bug-report-link-btn"
+          type="button"
+          class="bug-btn"
+        >
+          <span>Click here to send a bug report</span>
+          <span aria-hidden="true">→ 🐛</span>
+        </button>
+
+        <div class="attribution-wrapper">
+          <button
+            type="button"
+            class="attribution-trigger"
+            aria-describedby="attribution-tooltip"
+          >
+            Attribution
+          </button>
+          <div
+            id="attribution-tooltip"
+            class="attribution-tooltip"
+            role="tooltip"
+          >
+            <strong>Thank you to these creators & resources:</strong>
+            <ul>
+              <li>Icons8 – icons & visuals </li>
+              <li>Flaticon – icons</li>
+              <li>The Noun Project –  iconography</li>
+              <li>Iconmonstr – simple symbols</li>
+              <li>unDraw – illustration </li>
+              <li>Unsplash &amp; Pixabay – photography references</li>
+              <li>Freesound.org – sound effects</li>
+              <li>Pixabay Sounds &amp; OpenGameArt – game audio </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ------------------------------
+    // INITIAL SETUP & CONSTANTS
+    // ------------------------------
+    (function () {
+      const BOARD_SIZE = 30;
+      const LAST_INDEX = BOARD_SIZE - 1;
+
+      const EMOJIS = [
+        { value: "🐉", label: "Dragon" },
+        { value: "🧚‍♀️", label: "Fairy" },
+        { value: "🐶", label: "Dog" },
+        { value: "🐱", label: "Cat" },
+        { value: "🐦", label: "Bird" },
+        { value: "🐴", label: "Horse" },
+        { value: "💩", label: "Poo emoji" },
+        { value: "🔥", label: "Fire" },
+        { value: "❤️", label: "Heart" },
+        { value: "👻", label: "Ghost" },
+        { value: "🦃", label: "Turkey" },
+        { value: "❄️", label: "Snowflake" },
+        { value: "🚀", label: "Rocket" },
+        { value: "🚂", label: "Train" },
+        { value: "🦖", label: "T-Rex" }
+      ];
+
+      // Board special spaces configuration
+      // index: 0-based
+      const SPECIAL_SPACES = {
+        2: {
+          type: "bonus",
+          effect: "forward",
+          amount: 1,
+          title: "Hidden Footbridge",
+          shortLabel: "Bridge",
+          message: "You discover a hidden bridge over the ravine. Move ahead 1 space!"
+        },
+        4: {
+          type: "penalty",
+          effect: "back",
+          amount: 1,
+          title: "Loose Stones",
+          shortLabel: "Slip",
+          message: "Loose stones slide under your feet. Move back 1 space!"
+        },
+        7: {
+          type: "bonus",
+          effect: "extraRoll",
+          title: "Echoing Drums",
+          shortLabel: "Roll again",
+          message: "The jungle drums cheer you on. Roll again immediately!"
+        },
+        10: {
+          type: "penalty",
+          effect: "back",
+          amount: 2,
+          title: "Tangled Roots",
+          shortLabel: "Back 2",
+          message: "Tree roots trip you up. Move back 2 spaces."
+        },
+        13: {
+          type: "bonus",
+          effect: "forward",
+          amount: 2,
+          title: "Secret Tunnel",
+          shortLabel: "Ahead 2",
+          message: "You crawl through a secret tunnel. Move ahead 2 spaces!"
+        },
+        16: {
+          type: "stuck",
+          effect: "stuck",
+          typeLabel: "stuck",
+          title: "Sticky Swamp",
+          shortLabel: "Stuck",
+          message:
+            "You are stuck in the swamp. On your turn, roll a 4, 5, or 6 to escape. Otherwise you stay put!"
+        },
+        19: {
+          type: "bonus",
+          effect: "extraRoll",
+          title: "Friendly Fireflies",
+          shortLabel: "Roll again",
+          message:
+            "Glowing fireflies light your way. You may roll again right away!"
+        },
+        22: {
+          type: "penalty",
+          effect: "back",
+          amount: 3,
+          title: "Falling Bridge",
+          shortLabel: "Back 3",
+          message:
+            "A rope bridge snaps behind you. Slip back 3 spaces to safer ground."
+        },
+        25: {
+          type: "bonus",
+          effect: "forward",
+          amount: 2,
+          title: "River Current",
+          shortLabel: "Ahead 2",
+          message:
+            "A fast river carries you downstream. Move ahead 2 spaces!"
+        },
+        27: {
+          type: "stuck",
+          effect: "stuck",
+          typeLabel: "stuck",
+          title: "Vine Trap",
+          shortLabel: "Stuck",
+          message:
+            "Vines wrap around your feet. Roll a 4, 5, or 6 to break free on your turn!"
+        }
+      };
+
+      // ------------------------------
+      // DOM REFERENCES
+      // ------------------------------
+      const boardGrid = document.getElementById("board-grid");
+      const numPlayersSelect = document.getElementById("num-players");
+      const playersConfigContainer = document.getElementById("players-config");
+      const startGameBtn = document.getElementById("start-game-btn");
+      const resetGameBtn = document.getElementById("reset-game-btn");
+      const rollDiceBtn = document.getElementById("roll-dice-btn");
+      const diceValueEl = document.getElementById("dice-value");
+      const currentPlayerEl = document.getElementById("current-player");
+      const currentPlayerPositionEl = document.getElementById(
+        "current-player-position"
+      );
+      const logListEl = document.getElementById("log-list");
+      const announcerEl = document.getElementById("aria-announcer");
+
+      const themeToggleBtn = document.getElementById("theme-toggle");
+
+      // Modal elements
+      const modalBackdrop = document.getElementById("modal-backdrop");
+      const modalTitle = document.getElementById("modal-title");
+      const modalMessage = document.getElementById("modal-message");
+      const closeModalBtn = document.getElementById("close-modal-btn");
+      const bugReportActions = document.getElementById("bug-report-actions");
+      const bugReportLinkBtn = document.getElementById("bug-report-link-btn");
+      const bugReportCancelBtn = document.getElementById(
+        "bug-report-cancel-btn"
+      );
+      const bugReportConfirmBtn = document.getElementById(
+        "bug-report-confirm-btn"
+      );
+
+      // Audio
+      const diceSoundEl = document.getElementById("dice-sound");
+      const eventSoundEl = document.getElementById("event-sound");
+      const winSoundEl = document.getElementById("win-sound");
+
+      // ------------------------------
+      // STATE
+      // ------------------------------
+      let players = [];
+      let currentPlayerIndex = 0;
+      let gameStarted = false;
+      let gameOver = false;
+
+      const diceIcons = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+      // ------------------------------
+      // UTILITIES
+      // ------------------------------
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function playSound(audioEl) {
+        if (!audioEl) return;
+        try {
+          audioEl.currentTime = 0;
+          audioEl.play();
+        } catch (err) {
+          // Autoplay may be blocked; ignore.
+        }
+      }
+
+      function announce(text) {
+        if (!announcerEl) return;
+        // Clear first to ensure SR reads updates
+        announcerEl.textContent = "";
+        window.setTimeout(function () {
+          announcerEl.textContent = text;
+        }, 50);
+      }
+
+      function logEvent(message) {
+        if (!logListEl) return;
+        const now = new Date();
+        const time = now.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+
+        if (logListEl.querySelector(".log-empty")) {
+          logListEl.innerHTML = "";
+        }
+
+        const li = document.createElement("li");
+        li.className = "log-item";
+
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "log-time";
+        timeSpan.textContent = time;
+
+        const textSpan = document.createElement("span");
+        textSpan.className = "log-text";
+        textSpan.textContent = message;
+
+        li.appendChild(textSpan);
+        li.appendChild(timeSpan);
+
+        logListEl.appendChild(li);
+
+        // Limit log length
+        const maxItems = 40;
+        while (logListEl.children.length > maxItems) {
+          logListEl.removeChild(logListEl.firstChild);
+        }
+      }
+
+      // ------------------------------
+      // THEME TOGGLE
+      // ------------------------------
+      function setTheme(theme) {
+        document.body.dataset.theme = theme;
+        const isDark = theme === "dark";
+        themeToggleBtn.setAttribute("aria-pressed", String(isDark));
+        themeToggleBtn.setAttribute(
+          "aria-label",
+          isDark ? "Switch to light mode" : "Switch to dark mode"
+        );
+        themeToggleBtn.innerHTML = isDark
+          ? '<span>🌙</span><span>Dark</span>'
+          : '<span>☀️</span><span>Light</span>';
+        try {
+          window.localStorage.setItem("adventure-theme", theme);
+        } catch (e) {
+          // Ignore storage errors
+        }
+      }
+
+      function initTheme() {
+        let theme = "dark";
+        try {
+          const stored = window.localStorage.getItem("adventure-theme");
+          if (stored === "light" || stored === "dark") {
+            theme = stored;
+          } else if (
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+          ) {
+            theme = "dark";
+          } else {
+            theme = "light";
+          }
+        } catch (e) {
+          theme = "dark";
+        }
+        setTheme(theme);
+      }
+
+      // ------------------------------
+      // BOARD CREATION & UPDATES
+      // ------------------------------
+      function buildBoard() {
+        if (!boardGrid) return;
+        boardGrid.innerHTML = "";
+
+        for (let i = 0; i < BOARD_SIZE; i++) {
+          const cell = document.createElement("div");
+          cell.className = "board-cell";
+          cell.dataset.index = String(i);
+
+          if (i === 0) {
+            cell.classList.add("start");
+          } else if (i === LAST_INDEX) {
+            cell.classList.add("finish");
+          }
+
+          const special = SPECIAL_SPACES[i];
+          if (special) {
+            cell.classList.add("special");
+            cell.classList.add(
+              special.typeLabel ? special.typeLabel : special.type
+            );
+          }
+
+          const inner = document.createElement("div");
+          inner.className = "board-cell-inner";
+
+          const idLabel = document.createElement("div");
+          idLabel.className = "cell-id";
+          idLabel.textContent = String(i + 1);
+
+          const caption = document.createElement("div");
+          caption.className = "cell-caption";
+          if (i === 0) {
+            caption.textContent = "Campfire start";
+          } else if (i === LAST_INDEX) {
+            caption.textContent = "Final gate";
+          } else if (special && special.shortLabel) {
+            caption.textContent = special.shortLabel;
+          } else {
+            caption.textContent = "Trail";
+          }
+
+          const markers = document.createElement("div");
+          markers.className = "cell-markers";
+
+          inner.appendChild(idLabel);
+          inner.appendChild(caption);
+          inner.appendChild(markers);
+          cell.appendChild(inner);
+          boardGrid.appendChild(cell);
+        }
+      }
+
+      function updateBoardTokens() {
+        if (!boardGrid) return;
+        const markerEls = boardGrid.querySelectorAll(".cell-markers");
+        markerEls.forEach((m) => {
+          m.textContent = "";
+        });
+
+        players.forEach((player) => {
+          const index = player.position;
+          const cell = boardGrid.querySelector(
+            '.board-cell[data-index="' + index + '"]'
+          );
+          if (!cell) return;
+          const markers = cell.querySelector(".cell-markers");
+          if (!markers) return;
+
+          const span = document.createElement("span");
+          span.className = "token";
+          span.textContent = player.emoji;
+          span.title = player.name + " at space " + (player.position + 1);
+          markers.appendChild(span);
+        });
+
+        // Also update current player's position display
+        if (gameStarted && players.length && !gameOver) {
+          const current = players[currentPlayerIndex];
+          currentPlayerPositionEl.textContent =
+            "Space " + (current.position + 1) + " / " + BOARD_SIZE;
+        } else if (!gameStarted) {
+          currentPlayerPositionEl.textContent = "–";
+        }
+      }
+
+      // ------------------------------
+      // PLAYER SETUP
+      // ------------------------------
+      function buildPlayerConfig(count) {
+        playersConfigContainer.innerHTML = "";
+        const parsedCount = Math.min(4, Math.max(2, count));
+
+        for (let i = 0; i < parsedCount; i++) {
+          const row = document.createElement("div");
+          row.className = "player-config-row";
+          row.setAttribute("data-player-index", String(i));
+
+          const nameGroup = document.createElement("div");
+          nameGroup.className = "field-group";
+          const nameLabel = document.createElement("label");
+          nameLabel.setAttribute("for", "player-name-" + i);
+          nameLabel.textContent = "Player " + (i + 1) + " name";
+          const nameInput = document.createElement("input");
+          nameInput.type = "text";
+          nameInput.id = "player-name-" + i;
+          nameInput.name = "player-name-" + i;
+          nameInput.placeholder = "Explorer " + (i + 1);
+          nameInput.maxLength = 20;
+          nameGroup.appendChild(nameLabel);
+          nameGroup.appendChild(nameInput);
+
+          const emojiGroup = document.createElement("div");
+          emojiGroup.className = "field-group";
+          const emojiLabel = document.createElement("label");
+          emojiLabel.setAttribute("for", "player-emoji-" + i);
+          emojiLabel.textContent = "Token";
+          const emojiSelect = document.createElement("select");
+          emojiSelect.id = "player-emoji-" + i;
+          emojiSelect.name = "player-emoji-" + i;
+
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.textContent = "Choose emoji token";
+          emojiSelect.appendChild(defaultOption);
+
+          EMOJIS.forEach((emoji) => {
+            const option = document.createElement("option");
+            option.value = emoji.value;
+            option.textContent = emoji.value + " " + emoji.label;
+            emojiSelect.appendChild(option);
+          });
+
+          emojiGroup.appendChild(emojiLabel);
+          emojiGroup.appendChild(emojiSelect);
+
+          row.appendChild(nameGroup);
+          row.appendChild(emojiGroup);
+          playersConfigContainer.appendChild(row);
+        }
+      }
+
+      function getPlayerConfigCount() {
+        const value = parseInt(numPlayersSelect.value, 10);
+        if (Number.isNaN(value)) return 2;
+        return Math.min(4, Math.max(2, value));
+      }
+
+      function refreshPlayerConfigFromSelect() {
+        const count = getPlayerConfigCount();
+        buildPlayerConfig(count);
+      }
+
+      function disableSetup(disabled) {
+        numPlayersSelect.disabled = disabled;
+        const inputs = playersConfigContainer.querySelectorAll(
+          "input, select"
+        );
+        inputs.forEach((input) => {
+          input.disabled = disabled;
+        });
+        startGameBtn.disabled = disabled;
+      }
+
+      // ------------------------------
+      // MODAL HELPERS
+      // ------------------------------
+      function showGameModal(title, message) {
+        modalTitle.innerHTML =
+          '<span class="icon" aria-hidden="true">🔔</span><span>' +
+          title +
+          "</span>";
+        modalMessage.textContent = message;
+
+        // Show default OK button; hide bug actions
+        closeModalBtn.classList.remove("hidden");
+        bugReportActions.classList.add("hidden");
+
+        modalBackdrop.classList.remove("hidden");
+        requestAnimationFrame(function () {
+          modalBackdrop.classList.add("visible");
+        });
+        closeModalBtn.focus();
+        playSound(eventSoundEl);
+      }
+
+      function closeBugReportModal() {
+        modalBackdrop.classList.remove("visible");
+        window.setTimeout(function () {
+          modalBackdrop.classList.add("hidden");
+          // Reset modal to default state
+          closeModalBtn.classList.remove("hidden");
+          bugReportActions.classList.add("hidden");
+        }, 200);
+      }
+
+      // ------------------------------
+      // GAME STATE & LOGIC
+      // ------------------------------
+      function updateCurrentPlayerUI() {
+        if (!gameStarted || !players.length) {
+          currentPlayerEl.textContent = "–";
+          currentPlayerPositionEl.textContent = "–";
+          return;
+        }
+        const p = players[currentPlayerIndex];
+        currentPlayerEl.textContent = p.name + " " + p.emoji;
+        currentPlayerPositionEl.textContent =
+          "Space " + (p.position + 1) + " / " + BOARD_SIZE;
+      }
+
+      function switchToNextPlayer() {
+        if (!players.length) return;
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      }
+
+      function handleWin(player) {
+        gameOver = true;
+        rollDiceBtn.disabled = true;
+        logEvent(
+          player.name + " " + player.emoji + " reaches the final gate and wins!"
+        );
+        announce(player.name + " wins the game!");
+        playSound(winSoundEl);
+        showGameModal(
+          "You escaped the jungle!",
+          player.name +
+            " reaches the glowing gate and wins the adventure. Play again?"
+        );
+      }
+
+      function handleSpecialSpace(player, special) {
+        let extraTurn = false;
+
+        if (special.effect === "forward") {
+          const oldPos = player.position;
+          player.position = Math.min(
+            LAST_INDEX,
+            player.position + (special.amount || 0)
+          );
+          logEvent(
+            player.name +
+              " takes a shortcut from space " +
+              (oldPos + 1) +
+              " to " +
+              (player.position + 1) +
+              "."
+          );
+        } else if (special.effect === "back") {
+          const oldPos = player.position;
+          player.position = Math.max(
+            0,
+            player.position - (special.amount || 0)
+          );
+          logEvent(
+            player.name +
+              " slips from space " +
+              (oldPos + 1) +
+              " back to " +
+              (player.position + 1) +
+              "."
+          );
+        } else if (special.effect === "extraRoll") {
+          extraTurn = true;
+          logEvent(player.name + " earns an extra roll!");
+        } else if (special.effect === "stuck") {
+          player.stuck = true;
+          logEvent(
+            player.name +
+              " is stuck and must roll a 4, 5, or 6 on a future turn to escape."
+          );
+        }
+
+        updateBoardTokens();
+
+        if (player.position === LAST_INDEX) {
+          handleWin(player);
+          return;
+        }
+
+        showGameModal(special.title, special.message);
+
+        if (extraTurn) {
+          announce(player.name + " gets to roll again!");
+          updateCurrentPlayerUI();
+        } else {
+          switchToNextPlayer();
+          updateCurrentPlayerUI();
+        }
+      }
+
+      function movePlayerByRoll(player, roll) {
+        let target = player.position + roll;
+        if (target >= LAST_INDEX) {
+          target = LAST_INDEX;
+        }
+        player.position = target;
+        logEvent(
+          player.name + " moves " + roll + " step(s) to space " + (target + 1) + "."
+        );
+        announce(
+          player.name + " moves " + roll + " step(s) to space " + (target + 1) + "."
+        );
+        updateBoardTokens();
+
+        if (target === LAST_INDEX) {
+          handleWin(player);
+          return;
+        }
+
+        const special = SPECIAL_SPACES[target];
+        if (special) {
+          handleSpecialSpace(player, special);
+        } else {
+          switchToNextPlayer();
+          updateCurrentPlayerUI();
+        }
+      }
+
+      function handleRollClick() {
+        if (!gameStarted || !players.length || gameOver) {
+          showGameModal(
+            "Set up the camp first",
+            "Add at least two players and start the game before rolling."
+          );
+          return;
+        }
+
+        const player = players[currentPlayerIndex];
+        const roll = randomInt(1, 6);
+
+        diceValueEl.textContent = diceIcons[roll] + " " + roll;
+        playSound(diceSoundEl);
+        logEvent(player.name + " rolls a " + roll + ".");
+        announce(player.name + " rolls a " + roll + ".");
+
+        if (player.stuck) {
+          const stuckSpecial =
+            SPECIAL_SPACES[player.position] &&
+            SPECIAL_SPACES[player.position].effect === "stuck";
+          if (stuckSpecial && roll < 4) {
+            logEvent(
+              player.name +
+                " is still stuck and needs a 4, 5, or 6 to escape the trap."
+            );
+            showGameModal(
+              "Still stuck!",
+              player.name +
+                " rolled a " +
+                roll +
+                ". They need a 4, 5, or 6 to escape this tile."
+            );
+            switchToNextPlayer();
+            updateCurrentPlayerUI();
+            return;
+          } else if (stuckSpecial && roll >= 4) {
+            player.stuck = false;
+            logEvent(player.name + " breaks free from the trap!");
+            announce(
+              player.name +
+                " escapes the trap and can move " +
+                roll +
+                " spaces this turn."
+            );
+            movePlayerByRoll(player, roll);
+            return;
+          }
+        }
+
+        movePlayerByRoll(player, roll);
+      }
+
+      function startGame() {
+        const playerCount = getPlayerConfigCount();
+        const newPlayers = [];
+        const usedEmojis = new Set();
+
+        for (let i = 0; i < playerCount; i++) {
+          const nameInput = document.getElementById("player-name-" + i);
+          const emojiSelect = document.getElementById("player-emoji-" + i);
+          if (!nameInput || !emojiSelect) continue;
+
+          const name = nameInput.value.trim() || "Explorer " + (i + 1);
+          const emoji = emojiSelect.value;
+
+          if (!emoji) {
+            showGameModal(
+              "Choose tokens",
+              "Each player must pick an emoji token before the game can start."
+            );
+            emojiSelect.focus();
+            return;
+          }
+          if (usedEmojis.has(emoji)) {
+            showGameModal(
+              "Token already used",
+              "Each emoji token can only be chosen once. Please pick different tokens for each player."
+            );
+            emojiSelect.focus();
+            return;
+          }
+
+          usedEmojis.add(emoji);
+          newPlayers.push({
+            id: i,
+            name: name,
+            emoji: emoji,
+            position: 0,
+            stuck: false
+          });
+        }
+
+        if (newPlayers.length < 2) {
+          showGameModal(
+            "Need at least two explorers",
+            "Choose at least two players to begin the adventure."
+          );
+          return;
+        }
+
+        players = newPlayers;
+        currentPlayerIndex = 0;
+        gameStarted = true;
+        gameOver = false;
+
+        disableSetup(true);
+        rollDiceBtn.disabled = false;
+        diceValueEl.textContent = "–";
+        logListEl.innerHTML =
+          '<li class="log-empty">Log will appear here once the game begins.</li>';
+        logListEl.innerHTML = "";
+        logEvent(
+          "Adventure begins! Explorers: " +
+            players.map((p) => p.name + " " + p.emoji).join(", ") +
+            "."
+        );
+        announce(
+          "Adventure begins with " +
+            players.length +
+            " explorers. " +
+            players[currentPlayerIndex].name +
+            " goes first."
+        );
+        updateBoardTokens();
+        updateCurrentPlayerUI();
+      }
+
+      function resetGame() {
+        gameStarted = false;
+        gameOver = false;
+        players = [];
+        currentPlayerIndex = 0;
+
+        disableSetup(false);
+        rollDiceBtn.disabled = true;
+        diceValueEl.textContent = "–";
+        currentPlayerEl.textContent = "–";
+        currentPlayerPositionEl.textContent = "–";
+        buildBoard();
+        const count = getPlayerConfigCount();
+        buildPlayerConfig(count);
+        logListEl.innerHTML =
+          '<li class="log-empty">Log will appear here once the game begins.</li>';
+        updateBoardTokens();
+        announce("Game has been reset. Set up new explorers to play again.");
+      }
+
+      // ------------------------------
+      // BUG REPORT LOGIC
+      // ------------------------------
+      // Step 1: bug report button clicked
+      bugReportLinkBtn.addEventListener("click", () => {
+        const pageTitle = document.title || "Adventure Path: Emoji Quest";
+        const subject = "Bug Report - " + pageTitle;
+        const encodedSubject = encodeURIComponent(subject);
+        const gmailUrl =
+          "https://mail.google.com/mail/?view=cm&fs=1&to=dnavas@lps.org&su=" +
+          encodedSubject;
+
+        // store URL on confirm button
+        bugReportConfirmBtn.dataset.gmailUrl = gmailUrl;
+
+        // Set custom text
+        modalTitle.innerHTML =
+          '<span class="icon" aria-hidden="true">🐛</span><span>Report a Bug</span>';
+        modalMessage.textContent =
+          "This will open Gmail in a new tab with a new draft addressed to Daniel. Is that OK?";
+
+        // Swap buttons
+        closeModalBtn.classList.add("hidden");
+        bugReportActions.classList.remove("hidden");
+
+        // Show modal
+        modalBackdrop.classList.remove("hidden");
+        requestAnimationFrame(function () {
+          modalBackdrop.classList.add("visible");
+        });
+
+        bugReportCancelBtn.focus();
+      });
+
+      // Step 2: User confirms bug report
+      bugReportConfirmBtn.addEventListener("click", () => {
+        const url = bugReportConfirmBtn.dataset.gmailUrl;
+        if (url) {
+          window.open(url, "_blank");
+        }
+        closeBugReportModal();
+      });
+
+      // Step 3: User cancels
+      bugReportCancelBtn.addEventListener("click", closeBugReportModal);
+
+      // ------------------------------
+      // MODAL LISTENERS (SHARED)
+      // ------------------------------
+      closeModalBtn.addEventListener("click", closeBugReportModal);
+
+      modalBackdrop.addEventListener("click", (event) => {
+        if (event.target === modalBackdrop) {
+          closeBugReportModal();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !modalBackdrop.classList.contains("hidden")) {
+          closeBugReportModal();
+        }
+      });
+
+      // ------------------------------
+      // EVENT LISTENERS
+      // ------------------------------
+      numPlayersSelect.addEventListener("change", () => {
+        if (gameStarted) return;
+        refreshPlayerConfigFromSelect();
+      });
+
+      startGameBtn.addEventListener("click", startGame);
+      resetGameBtn.addEventListener("click", resetGame);
+      rollDiceBtn.addEventListener("click", handleRollClick);
+
+      themeToggleBtn.addEventListener("click", () => {
+        const currentTheme = document.body.dataset.theme || "dark";
+        const nextTheme = currentTheme === "dark" ? "light" : "dark";
+        setTheme(nextTheme);
+      });
+
+      // ------------------------------
+      // INIT
+      // ------------------------------
+      buildBoard();
+      refreshPlayerConfigFromSelect();
+      initTheme();
+      updateBoardTokens();
+      updateCurrentPlayerUI();
+      rollDiceBtn.disabled = true;
+    })();
+  </script>
+</body>
+</html>
