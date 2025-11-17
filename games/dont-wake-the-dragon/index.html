@@ -1,0 +1,2878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Don’t Wake the Dragon</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Single-file app following Front-End Web Development Guidelines (2025) -->
+
+  <style>
+    /* =========
+       Base + Theme
+       ========= */
+    :root {
+      color-scheme: dark light;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+      /* Dark theme (default) */
+      --bg-dark: #050711;
+      --bg-panel-dark: #111627;
+      --bg-board-dark: #151b2d;
+      --bg-board-inner-dark: #05060b;
+      --border-subtle-dark: #343b4f;
+      --accent-gold-dark: #fbbf24;
+      --accent-green-dark: #22c55e;
+      --accent-blue-dark: #38bdf8;
+      --accent-red-dark: #f97373;
+      --text-main-dark: #e5e7eb;
+      --text-muted-dark: #9ca3af;
+      --shadow-soft-dark: 0 18px 40px rgba(0, 0, 0, 0.65);
+
+      /* Light theme */
+      --bg-light: #f3eee3;
+      --bg-panel-light: #e4dcc4;
+      --bg-board-light: #d3c8aa;
+      --bg-board-inner-light: #f9f4e8;
+      --border-subtle-light: #b3a585;
+      --accent-gold-light: #c27d21;
+      --accent-green-light: #148048;
+      --accent-blue-light: #1c6a96;
+      --accent-red-light: #b83535;
+      --text-main-light: #1f2933;
+      --text-muted-light: #4b5563;
+      --shadow-soft-light: 0 14px 30px rgba(0, 0, 0, 0.25);
+
+      /* Shared */
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+      --transition-fast: 0.18s ease-out;
+      --transition-med: 0.28s ease-out;
+      --focus-ring: 0 0 0 3px rgba(129, 230, 217, 0.85);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      display: flex;
+      justify-content: center;
+      background-color: var(--bg-dark);
+      color: var(--text-main-dark);
+      transition: background-color var(--transition-med), color var(--transition-med);
+    }
+
+    body[data-theme="light"] {
+      background-color: var(--bg-light);
+      color: var(--text-main-light);
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1200px;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .title-block h1 {
+      font-size: 1.7rem;
+      margin: 0;
+    }
+
+    .title-block p {
+      margin: 0.2rem 0 0;
+      font-size: 0.92rem;
+      color: var(--text-muted-dark);
+    }
+
+    body[data-theme="light"] .title-block p {
+      color: var(--text-muted-light);
+    }
+
+    .tagline-emphasis {
+      font-weight: 600;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    button {
+      font-family: inherit;
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1e293b, #020617);
+      color: #f9fafb;
+      transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    body[data-theme="light"] button {
+      background: linear-gradient(135deg, #e0d7c0, #c2b598);
+      color: #111827;
+    }
+
+    button.primary-btn {
+      background: radial-gradient(circle at top left, #fbbf24, #b45309);
+      color: #020617;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65);
+    }
+
+    body[data-theme="light"] button.primary-btn {
+      background: radial-gradient(circle at top left, #facc15, #b45309);
+      color: #111827;
+    }
+
+    button.ghost-btn {
+      background: transparent;
+      border-color: var(--border-subtle-dark);
+      color: var(--text-main-dark);
+    }
+
+    body[data-theme="light"] button.ghost-btn {
+      border-color: var(--border-subtle-light);
+      color: var(--text-main-light);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    button:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    button:not(:disabled):active {
+      transform: translateY(0);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    /* Theme toggle */
+    #theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.85rem;
+      padding-inline: 0.7rem;
+    }
+
+    #theme-toggle span {
+      font-size: 1.1rem;
+    }
+
+    /* =========
+       Layout
+       ========= */
+    .app-main {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    @media (max-width: 880px) {
+      .app-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .board-wrapper {
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.25), transparent 55%),
+                  radial-gradient(circle at bottom, rgba(250, 204, 21, 0.2), transparent 60%),
+                  var(--bg-board-dark);
+      border-radius: var(--radius-lg);
+      padding: 0.9rem;
+      box-shadow: var(--shadow-soft-dark);
+      position: relative;
+      overflow: hidden;
+    }
+
+    body[data-theme="light"] .board-wrapper {
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 55%),
+                  radial-gradient(circle at bottom, rgba(217, 119, 6, 0.14), transparent 60%),
+                  var(--bg-board-light);
+      box-shadow: var(--shadow-soft-light);
+    }
+
+    .board-inner {
+      position: relative;
+      border-radius: 18px;
+      padding: 0.6rem;
+      background: radial-gradient(circle at 30% 0%, rgba(249, 250, 251, 0.18), transparent 60%),
+                  var(--bg-board-inner-dark);
+      overflow: hidden;
+    }
+
+    body[data-theme="light"] .board-inner {
+      background: radial-gradient(circle at 30% 0%, rgba(15, 23, 42, 0.06), transparent 60%),
+                  var(--bg-board-inner-light);
+    }
+
+    .board-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      gap: 0.3rem;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+    }
+
+    /* =========
+       Board tiles
+       ========= */
+    .board-tile {
+      position: relative;
+      border-radius: 10px;
+      background: #020617;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+    }
+
+    body[data-theme="light"] .board-tile {
+      background: #efe6d0;
+      border-color: rgba(87, 65, 39, 0.65);
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.35);
+    }
+
+    .board-tile-start {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.6), inset 0 0 12px rgba(0, 0, 0, 0.8);
+    }
+
+    .board-tile-treasure {
+      border-color: #facc15;
+      box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.8), inset 0 0 12px rgba(0, 0, 0, 0.85);
+    }
+
+    .tile-color-band {
+      position: absolute;
+      inset: 0;
+      opacity: 0.28;
+      mix-blend-mode: screen;
+    }
+
+    body[data-theme="light"] .tile-color-band {
+      opacity: 0.22;
+      mix-blend-mode: multiply;
+    }
+
+    .tile-color-yellow { background: radial-gradient(circle, #facc15, #92400e); }
+    .tile-color-green { background: radial-gradient(circle, #22c55e, #14532d); }
+    .tile-color-blue { background: radial-gradient(circle, #38bdf8, #0f172a); }
+    .tile-color-red { background: radial-gradient(circle, #f97373, #7f1d1d); }
+
+    body[data-theme="light"] .tile-color-yellow { background: radial-gradient(circle, #fde047, #b45309); }
+    body[data-theme="light"] .tile-color-green { background: radial-gradient(circle, #4ade80, #166534); }
+    body[data-theme="light"] .tile-color-blue { background: radial-gradient(circle, #7dd3fc, #1d4ed8); }
+    body[data-theme="light"] .tile-color-red { background: radial-gradient(circle, #fecaca, #b91c1c); }
+
+    .tile-labels {
+      position: relative;
+      z-index: 1;
+      padding: 0.25rem 0.3rem 0.3rem;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+      font-size: 0rem;
+      color: #e5e7eb;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    }
+
+    body[data-theme="light"] .tile-labels {
+      color: #111827;
+      text-shadow: none;
+    }
+
+    .tile-label-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .tile-index {
+      opacity: 0.7;
+      font-size: 0rem;
+    }
+
+    .tile-color-letter {
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .tile-label-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.25rem;
+    }
+
+    .tile-noise-icon {
+      font-size: 2.0rem;
+    }
+
+    .tile-press-count {
+      min-width: 1.1rem;
+      text-align: center;
+      border-radius: 999px;
+      padding: 0.05rem 0.1rem;
+      font-weight: 700;
+      font-size: 2.0rem;
+      background: rgba(15, 23, 42, 0.7);
+      color: #fefce8;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+    }
+
+    body[data-theme="light"] .tile-press-count {
+      background: rgba(255, 251, 235, 0.9);
+      color: #1f2937;
+      border-color: rgba(55, 65, 81, 0.65);
+    }
+
+    .board-tile-noise {
+      box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.8), inset 0 0 12px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Player pieces - offset when multiple on same tile */
+    .tile-pieces {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .player-piece {
+      position: absolute;
+      font-size: 1.5rem;
+      transform: translate(
+        calc(var(--offset-index, 0) * 0.4rem),
+        calc(var(--offset-index, 0) * -0.35rem)
+      );
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.85));
+      transition: transform 0.18s ease-out;
+    }
+
+    /* =========
+       Dragon zone
+       ========= */
+    .dragon-zone {
+      position: absolute;
+      inset: 18%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      pointer-events: none; /* allow tiles around to be interactable */
+    }
+
+    .dragon-art-wrapper {
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 1 / 1;
+      border-radius: 999px;
+      overflow: hidden;
+      background: radial-gradient(circle at 30% 0%, rgba(249, 250, 251, 0.18), transparent 60%),
+                  radial-gradient(circle at 70% 100%, rgba(248, 250, 252, 0.16), transparent 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.4rem;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.85);
+      pointer-events: auto; /* so crystal button inside can be clicked */
+    }
+
+    body[data-theme="light"] .dragon-art-wrapper {
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    #dragon-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    /* Inline guidance: create both dragon images at roughly 400x400px with transparent backgrounds. */
+
+    .crystal-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      margin-bottom: 0.1rem;
+    }
+
+    #crystal-button {
+      pointer-events: auto;
+      font-size: 0.85rem;
+      padding-inline: 0.9rem;
+    }
+
+    #crystal-button.crystal-highlight {
+      box-shadow: 0 0 0 3px rgba(248, 250, 252, 0.85), 0 0 20px rgba(250, 204, 21, 0.95);
+      transform: translateY(-1px) scale(1.02);
+    }
+
+    .crystal-status {
+      font-size: 0.75rem;
+      color: var(--text-muted-dark);
+      text-align: center;
+    }
+
+    body[data-theme="light"] .crystal-status {
+      color: var(--text-muted-light);
+    }
+
+    /* =========
+       Legend / helper text
+       ========= */
+    .board-legend {
+      margin-top: 0.45rem;
+      font-size: 0.8rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      color: var(--text-muted-dark);
+    }
+
+    body[data-theme="light"] .board-legend {
+      color: var(--text-muted-light);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    body[data-theme="light"] .legend-item {
+      background: rgba(248, 250, 252, 0.7);
+    }
+
+    .legend-swatch {
+      width: 0.85rem;
+      height: 0.85rem;
+      border-radius: 0.35rem;
+      border: 1px solid rgba(15, 23, 42, 0.7);
+    }
+
+    .legend-swatch-yellow { background: #facc15; }
+    .legend-swatch-green { background: #22c55e; }
+    .legend-swatch-blue { background: #38bdf8; }
+    .legend-swatch-red { background: #f97373; }
+
+    /* =========
+       Control panel
+       ========= */
+    .control-panel {
+      background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.25), transparent 55%),
+                  radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.22), transparent 55%),
+                  var(--bg-panel-dark);
+      border-radius: var(--radius-lg);
+      padding: 0.9rem 0.95rem 0.85rem;
+      box-shadow: var(--shadow-soft-dark);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    body[data-theme="light"] .control-panel {
+      background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.18), transparent 55%),
+                  radial-gradient(circle at 100% 100%, rgba(180, 83, 9, 0.14), transparent 55%),
+                  var(--bg-panel-light);
+      box-shadow: var(--shadow-soft-light);
+    }
+
+    h2, h3 {
+      margin: 0 0 0.35rem;
+      font-size: 1rem;
+    }
+
+    .setup-panel p,
+    .game-panel p {
+      margin: 0 0 0.4rem;
+      font-size: 0.86rem;
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.45rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .player-setup-row {
+      border-radius: 10px;
+      padding: 0.45rem 0.5rem;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    body[data-theme="light"] .player-setup-row {
+      background: rgba(248, 250, 252, 0.8);
+      border-color: rgba(120, 73, 24, 0.6);
+    }
+
+    .player-setup-row h3 {
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .player-setup-row label {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0.25rem;
+      font-size: 0.78rem;
+      gap: 0.1rem;
+    }
+
+    .player-setup-row input,
+    .player-setup-row select {
+      border-radius: 0.5rem;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      padding: 0.25rem 0.45rem;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.8);
+      color: inherit;
+    }
+
+    body[data-theme="light"] .player-setup-row input,
+    body[data-theme="light"] .player-setup-row select {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(120, 73, 24, 0.64);
+    }
+
+    .setup-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .setup-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted-dark);
+      max-width: 11rem;
+    }
+
+    body[data-theme="light"] .setup-hint {
+      color: var(--text-muted-light);
+    }
+
+    .setup-error {
+      margin-top: 0.2rem;
+      font-size: 0.78rem;
+      color: #fca5a5;
+      min-height: 1.1rem;
+    }
+
+    .hidden-visually {
+      display: none !important;
+    }
+
+    /* Game panel */
+    .game-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .turn-summary {
+      padding: 0.4rem 0.5rem;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      font-size: 0.85rem;
+    }
+
+    body[data-theme="light"] .turn-summary {
+      background: rgba(248, 250, 252, 0.95);
+      border-color: rgba(120, 73, 24, 0.7);
+    }
+
+    .turn-summary strong {
+      font-weight: 600;
+    }
+
+    .spinner-shell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .spinner-visual {
+      flex: 1;
+      min-height: 3.1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      background: radial-gradient(circle at 30% 10%, rgba(248, 250, 251, 0.15), transparent 60%),
+                  #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.8);
+    }
+
+    body[data-theme="light"] .spinner-visual {
+      background: radial-gradient(circle at 30% 10%, rgba(15, 23, 42, 0.09), transparent 60%),
+                  #f9fafb;
+      border-color: rgba(120, 73, 24, 0.8);
+    }
+
+    #spinner-display {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.5rem;
+    }
+
+    .players-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 0.2rem;
+    }
+
+    .player-summary-card {
+      border-radius: 10px;
+      padding: 0.35rem 0.45rem;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.3fr);
+      gap: 0.3rem;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    body[data-theme="light"] .player-summary-card {
+      background: rgba(248, 250, 252, 0.9);
+      border-color: rgba(120, 73, 24, 0.7);
+    }
+
+    .player-summary-card.is-current {
+      box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.9);
+    }
+
+    .player-summary-main {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .player-name-line {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .player-token-display {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .player-name-text {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .player-position-text {
+      font-size: 0.72rem;
+      color: var(--text-muted-dark);
+    }
+
+    body[data-theme="light"] .player-position-text {
+      color: var(--text-muted-light);
+    }
+
+    .player-cards {
+      font-size: 0.85rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.15rem;
+      align-items: center;
+    }
+
+    .player-cards-label {
+      font-size: 0.72rem;
+      color: var(--text-muted-dark);
+    }
+
+    body[data-theme="light"] .player-cards-label {
+      color: var(--text-muted-light);
+    }
+
+    .card-emoji {
+      font-size: 1rem;
+    }
+
+    .panel-footer-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.4rem;
+      margin-top: 0.2rem;
+    }
+
+    .last-action-log {
+      font-size: 0.78rem;
+      margin-top: 0.25rem;
+      color: var(--text-muted-dark);
+      min-height: 1.2rem;
+    }
+
+    body[data-theme="light"] .last-action-log {
+      color: var(--text-muted-light);
+    }
+
+    /* =========
+       Modal (game + bug report)
+       ========= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-med);
+      z-index: 40;
+    }
+
+    .modal-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-dialog {
+      width: min(420px, 92vw);
+      background: #020617;
+      border-radius: 16px;
+      padding: 0.8rem 0.9rem 0.7rem;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      box-shadow: 0 28px 60px rgba(0, 0, 0, 0.9);
+      transform: translateY(12px) scale(0.98);
+      transition: transform var(--transition-med);
+    }
+
+    body[data-theme="light"] .modal-dialog {
+      background: #f9fafb;
+      border-color: rgba(120, 73, 24, 0.9);
+      box-shadow: 0 22px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .modal-backdrop.is-open .modal-dialog {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-title {
+      font-size: 1rem;
+      margin: 0 0 0.25rem;
+    }
+
+    .modal-message {
+      margin: 0 0 0.5rem;
+      font-size: 0.87rem;
+    }
+
+    .modal-actions-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+    }
+
+    #bug-report-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+    }
+
+    /* =========
+       Footer + bug report + attribution
+       ========= */
+    footer {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted-dark);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    body[data-theme="light"] footer {
+      color: var(--text-muted-light);
+    }
+
+    #bug-report-link-btn {
+      font-size: 0.78rem;
+      padding: 0.25rem 0.6rem;
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .attribution-wrapper {
+      position: relative;
+      font-size: 0.8rem;
+      cursor: default;
+    }
+
+    .attribution-label {
+      text-decoration: underline dotted;
+      text-underline-offset: 0.12em;
+    }
+
+    .attribution-tooltip {
+      position: absolute;
+      right: 0;
+      bottom: 120%;
+      width: min(260px, 80vw);
+      background: #020617;
+      color: #f9fafb;
+      border-radius: 10px;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      font-size: 0.74rem;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(4px);
+      transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+      z-index: 50;
+    }
+
+    body[data-theme="light"] .attribution-tooltip {
+      background: #f9fafb;
+      color: #111827;
+      border-color: rgba(120, 73, 24, 0.8);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+    }
+
+    .attribution-wrapper:hover .attribution-tooltip,
+    .attribution-wrapper:focus-within .attribution-tooltip {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .attribution-tooltip strong {
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+
+    .attribution-list {
+      margin: 0;
+      padding-left: 1.1rem;
+    }
+
+    .attribution-list li {
+      margin: 0.05rem 0;
+    }
+
+    /* =========
+       Misc helpers
+       ========= */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="app-shell">
+    <header>
+      <div class="title-block">
+        <h1>Don’t Wake the Dragon</h1>
+        <p>
+          Guide your heroes through the cave, steal the treasure, and
+          <span class="tagline-emphasis">match your noise charms or risk the alarm.</span>
+        </p>
+      </div>
+      <div class="toolbar" aria-label="Global controls">
+        <button id="theme-toggle" type="button" class="ghost-btn">
+          <span aria-hidden="true">🌙</span>
+          <span class="theme-toggle-text">Switch to light mode</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <!-- ========= Board side ========= -->
+      <section class="board-wrapper" aria-label="Game board region">
+        <div class="board-inner">
+          <div
+            id="board"
+            class="board-grid"
+            aria-label="Cave path board"
+            role="group"
+          >
+            <!-- Tiles are injected by JavaScript -->
+          </div>
+
+          <!-- Dragon + crystal in the center of the board -->
+          <div
+            class="dragon-zone"
+            aria-label="Sleeping dragon and alarm crystal"
+          >
+            <div class="dragon-art-wrapper">
+              <img
+                id="dragon-image"
+                src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/images/dont-wake-the-dragon/dragon_sleeping.png"
+                alt="Sleeping dragon curled protectively around treasure in the middle of the board."
+                data-src-sleeping="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/images/dont-wake-the-dragon/dragon_sleeping.png"
+                data-src-awake="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/images/dont-wake-the-dragon/dragon_awake.png"
+              />
+              <!-- Create both dragon images at roughly 400x400px with transparent backgrounds. -->
+            </div>
+            <div class="crystal-controls">
+              <button
+                id="crystal-button"
+                type="button"
+                class="ghost-btn"
+                aria-describedby="crystal-status"
+              >
+                Press alarm crystal
+              </button>
+              <p
+                id="crystal-status"
+                class="crystal-status"
+                aria-live="polite"
+              >
+                The alarm crystal is quiet. Total presses this game: 0
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Board legend for quick explanations -->
+        <div class="board-legend" aria-label="Board legend">
+          <span class="legend-item">
+            <span class="legend-swatch legend-swatch-yellow"></span>
+            <span>🟨 Yellow path tile</span>
+          </span>
+          <span class="legend-item">
+            <span class="legend-swatch legend-swatch-green"></span>
+            <span>🟩 Green path tile</span>
+          </span>
+          <span class="legend-item">
+            <span class="legend-swatch legend-swatch-blue"></span>
+            <span>🟦 Blue path tile</span>
+          </span>
+          <span class="legend-item">
+            <span class="legend-swatch legend-swatch-red"></span>
+            <span>🟥 Red path tile</span>
+          </span>
+          <span class="legend-item">
+            <span aria-hidden="true">🎭</span>
+            <span>Emoji noise tile — match the emoji in your hand to stay safe.</span>
+          </span>
+        </div>
+      </section>
+
+      <!-- ========= Control panel side ========= -->
+      <aside class="control-panel" aria-label="Control panel">
+        <!-- Player setup panel -->
+        <section
+          id="setup-panel"
+          class="setup-panel"
+          aria-label="Player setup"
+        >
+          <h2>Player setup</h2>
+          <p>
+            Enter names and choose hero emojis for
+            <strong>2–4 players</strong>, then start the adventure.
+            Each hero will be dealt secret noise charms that match the emoji tiles on the board.
+          </p>
+
+          <form id="setup-form" novalidate>
+            <div class="setup-grid">
+              <!-- Player 1 -->
+              <div class="player-setup-row" data-player-setup="1">
+                <h3>Player 1</h3>
+                <label for="player-1-name">
+                  Name
+                  <input
+                    id="player-1-name"
+                    type="text"
+                    maxlength="20"
+                    autocomplete="off"
+                  />
+                </label>
+                <label for="player-1-emoji">
+                  Hero token
+                  <select id="player-1-emoji">
+                    <option value="">Choose a token…</option>
+                    <option>🧙‍♀️</option>
+                    <option>🧙‍♂️</option>
+                    <option>🧝</option>
+                    <option>🧝‍♂️</option>
+                    <option>🧞‍♂️</option>
+                    <option>🧞‍♀️</option>
+                    <option>🥷</option>
+                    <option>🧚</option>
+                    <option>🧚‍♀️</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- Player 2 -->
+              <div class="player-setup-row" data-player-setup="2">
+                <h3>Player 2</h3>
+                <label for="player-2-name">
+                  Name
+                  <input
+                    id="player-2-name"
+                    type="text"
+                    maxlength="20"
+                    autocomplete="off"
+                  />
+                </label>
+                <label for="player-2-emoji">
+                  Hero token
+                  <select id="player-2-emoji">
+                    <option value="">Choose a token…</option>
+                    <option>🧙‍♀️</option>
+                    <option>🧙‍♂️</option>
+                    <option>🧝</option>
+                    <option>🧝‍♂️</option>
+                    <option>🧞‍♂️</option>
+                    <option>🧞‍♀️</option>
+                    <option>🥷</option>
+                    <option>🧚</option>
+                    <option>🧚‍♀️</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- Player 3 -->
+              <div class="player-setup-row" data-player-setup="3">
+                <h3>Player 3</h3>
+                <label for="player-3-name">
+                  Name
+                  <input
+                    id="player-3-name"
+                    type="text"
+                    maxlength="20"
+                    autocomplete="off"
+                  />
+                </label>
+                <label for="player-3-emoji">
+                  Hero token
+                  <select id="player-3-emoji">
+                    <option value="">Optional third player…</option>
+                    <option>🧙‍♀️</option>
+                    <option>🧙‍♂️</option>
+                    <option>🧝</option>
+                    <option>🧝‍♂️</option>
+                    <option>🧞‍♂️</option>
+                    <option>🧞‍♀️</option>
+                    <option>🥷</option>
+                    <option>🧚</option>
+                    <option>🧚‍♀️</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- Player 4 -->
+              <div class="player-setup-row" data-player-setup="4">
+                <h3>Player 4</h3>
+                <label for="player-4-name">
+                  Name
+                  <input
+                    id="player-4-name"
+                    type="text"
+                    maxlength="20"
+                    autocomplete="off"
+                  />
+                </label>
+                <label for="player-4-emoji">
+                  Hero token
+                  <select id="player-4-emoji">
+                    <option value="">Optional fourth player…</option>
+                    <option>🧙‍♀️</option>
+                    <option>🧙‍♂️</option>
+                    <option>🧝</option>
+                    <option>🧝‍♂️</option>
+                    <option>🧞‍♂️</option>
+                    <option>🧞‍♀️</option>
+                    <option>🥷</option>
+                    <option>🧚</option>
+                    <option>🧚‍♀️</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="setup-actions">
+              <button
+                id="start-game-btn"
+                type="button"
+                class="primary-btn"
+              >
+                Start game
+              </button>
+              <p class="setup-hint">
+                The board and spinner stay locked until at least 2 players
+                are ready.
+              </p>
+            </div>
+            <p
+              id="setup-error"
+              class="setup-error"
+              role="alert"
+              aria-live="polite"
+            ></p>
+          </form>
+        </section>
+
+        <!-- Game panel (shown after setup) -->
+        <section
+          id="game-panel"
+          class="game-panel hidden-visually"
+          aria-label="Game controls"
+        >
+          <h2>Adventure in progress</h2>
+
+          <section class="turn-summary" aria-label="Turn summary">
+            <p>
+              <strong>Current turn:</strong>
+              <span id="current-player-label">—</span>
+            </p>
+            <p>
+              <strong>Last spin:</strong>
+              <span id="spinner-result-text">No spins yet</span>
+            </p>
+          </section>
+
+          <div class="spinner-shell">
+            <div
+              id="spinner-visual"
+              class="spinner-visual"
+              aria-live="polite"
+              aria-label="Spinner result"
+            >
+              <span id="spinner-display">–</span>
+            </div>
+            <button
+              id="spin-button"
+              type="button"
+              class="primary-btn"
+              disabled
+            >
+              Spin
+            </button>
+          </div>
+
+          <section
+            aria-label="Players and their noise charms"
+            class="players-list"
+            id="player-summary"
+          >
+            <!-- Filled by JavaScript -->
+          </section>
+
+          <div class="panel-footer-buttons">
+            <button
+              id="new-game-btn"
+              type="button"
+              class="ghost-btn"
+            >
+              New game
+            </button>
+            <button
+              id="mute-sounds-btn"
+              type="button"
+              class="ghost-btn"
+            >
+              🔈 Sounds on
+            </button>
+          </div>
+
+          <p
+            id="last-action-log"
+            class="last-action-log"
+            aria-live="polite"
+          >
+            Set up your heroes and click “Start game” to be dealt noise charms.
+          </p>
+        </section>
+      </aside>
+    </main>
+
+    <!-- ========= Global modal (game events & bug report) ========= -->
+    <div
+      id="modal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="modal-title"
+      aria-describedby="modal-message"
+    >
+      <div class="modal-dialog">
+        <h2 id="modal-title" class="modal-title">Modal title</h2>
+        <p id="modal-message" class="modal-message">
+          Modal message goes here.
+        </p>
+
+        <!-- Default button (for game events) -->
+        <div class="modal-actions-row">
+          <button
+            id="close-modal-btn"
+            type="button"
+            class="primary-btn"
+          >
+            OK
+          </button>
+        </div>
+
+        <!-- Buttons for bug report (hidden by default) -->
+        <div
+          id="bug-report-actions"
+          class="hidden-visually"
+        >
+          <button
+            id="bug-report-cancel-btn"
+            type="button"
+            class="ghost-btn"
+          >
+            Cancel
+          </button>
+          <button
+            id="bug-report-confirm-btn"
+            type="button"
+            class="primary-btn"
+          >
+            Open Gmail
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========= Footer with bug report + attribution ========= -->
+    <footer>
+      <div>
+        This site is maintained by <strong>Daniel Navas, MA, CCC-SLP.</strong>
+      </div>
+      <div class="footer-right">
+        <button
+          id="bug-report-link-btn"
+          type="button"
+          class="ghost-btn"
+        >
+          Click here to send a bug report → 🐛
+        </button>
+
+        <div class="attribution-wrapper" tabindex="0">
+          <span class="attribution-label">Attribution</span>
+          <div class="attribution-tooltip" role="status">
+            <strong>Thanks to these resources:</strong>
+            <ul class="attribution-list">
+              <li>Icons8 – icons &amp; graphics</li>
+              <li>Flaticon – icon sets</li>
+              <li>The Noun Project – universal icons</li>
+              <li>Iconmonstr – simple icons</li>
+              <li>unDraw – open-source illustrations</li>
+              <li>Unsplash &amp; Pixabay – photos &amp; sounds</li>
+              <li>Freesound.org – sound effects</li>
+              <li>OpenGameArt – game-ready art &amp; audio</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ========= Audio placeholders ========= -->
+    <!-- Star spin bonus sound -->
+    <audio
+      id="audio-star"
+      src="placeholder-star-bonus.mp3"
+      preload="auto"
+    ></audio>
+
+    <!-- Victory fanfare -->
+    <audio
+      id="audio-fanfare"
+      src="placeholder-victory-fanfare.mp3"
+      preload="auto"
+    ></audio>
+
+    <!-- Crystal press sound -->
+    <audio
+      id="audio-crystal"
+      src="placeholder-crystal-press.mp3"
+      preload="auto"
+    ></audio>
+
+    <!-- Alarm blast sound -->
+    <audio
+      id="audio-alarm"
+      src="placeholder-crystal-alarm.mp3"
+      preload="auto"
+    ></audio>
+
+    <!-- Dragon roar -->
+    <audio
+      id="audio-dragon-roar"
+      src="placeholder-dragon-roar.mp3"
+      preload="auto"
+    ></audio>
+
+    <!-- Unique sounds for each of the 16 noise-making spaces -->
+    <audio
+      id="noise-coin"
+      data-noise-id="coin"
+      src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/coin-flip.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-scale"
+      data-noise-id="scale"
+      src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/snap-crunch.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-rock"
+      data-noise-id="rock"
+      src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/rocks-and-gravel.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-bats"
+      data-noise-id="bats"
+      src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/bats.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-steam"
+      data-noise-id="steam"
+      src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/steam.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-chest"
+      data-noise-id="chest"
+      src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/chest.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-bone"
+      data-noise-id="bone"
+      src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/falling-bone.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-armor"
+      data-noise-id="armor"
+      src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/armor.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-dragonlings"
+      data-noise-id="dragonlings"
+      src="https://raw.githubusercontent.com/402-Code-Source/resource-hub/refs/heads/main/static/audio/sound-effects/snake-hissing.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-magiccoins"
+      data-noise-id="magiccoins"
+      src="placeholder-noise-magiccoins.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-gems"
+      data-noise-id="gems"
+      src="placeholder-noise-gems.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-eggshell"
+      data-noise-id="eggshell"
+      src="placeholder-noise-eggshell.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-sigil"
+      data-noise-id="sigil"
+      src="placeholder-noise-sigil.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-cat"
+      data-noise-id="cat"
+      src="placeholder-noise-cat.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-trophies"
+      data-noise-id="trophies"
+      src="placeholder-noise-trophies.mp3"
+      preload="auto"
+    ></audio>
+    <audio
+      id="noise-ring"
+      data-noise-id="ring"
+      src="placeholder-noise-ring.mp3"
+      preload="auto"
+    ></audio>
+
+    <script>
+      (function () {
+        "use strict";
+
+        /* =========================
+           Constants and helpers
+           ========================= */
+
+        const MAX_PLAYERS = 4;
+        const MIN_PLAYERS = 2;
+        const PATH_LENGTH = 20;
+
+        const PATH_COLORS = ["yellow", "green", "blue", "red"];
+        const SPINNER_SEGMENTS = [...PATH_COLORS, "star"];
+
+        const COLOR_EMOJI = {
+          yellow: "🟨",
+          green: "🟩",
+          blue: "🟦",
+          red: "🟥",
+        };
+
+        const COLOR_LABEL = {
+          yellow: "Yellow",
+          green: "Green",
+          blue: "Blue",
+          red: "Red",
+        };
+
+        // 16 distinct noise events, each with a unique emoji and themed copy
+        const NOISE_EVENTS = [
+          {
+            id: "coin",
+            icon: "🪙",
+            name: "Rolling coin",
+            safeLine:
+              "A twitchy coin tries to escape, but your matching coin charm jingles and it settles down. No crystal presses this turn.",
+            unsafeIntro:
+              "A gold coin rockets out of your pouch and clatters across the cavern.",
+          },
+          {
+            id: "scale",
+            icon: "🐉",
+            name: "Dragon scale crunch",
+            safeLine:
+              "A dragon scale flexes under your boot, but your scale charm glows and it bends silently back into place.",
+            unsafeIntro:
+              "Your boot crunches down on a stray dragon scale far too close to the dragon’s head.",
+          },
+          {
+            id: "rock",
+            icon: "🪨",
+            name: "Falling rock",
+            safeLine:
+              "A loose rock shifts, but your stone ward hums and the wall settles with a soft sigh.",
+            unsafeIntro:
+              "A chunk of rock snaps free and crashes to the floor with a doom-echoing thud.",
+          },
+          {
+            id: "bats",
+            icon: "🦇",
+            name: "Bat swarm",
+            safeLine:
+              "A bat flutters one eye open, then your bat charm flaps once and it goes right back to sleep.",
+            unsafeIntro:
+              "You brush a hanging bat; a whole cloud of them explodes into squeaks and flapping wings.",
+          },
+          {
+            id: "steam",
+            icon: "💨",
+            name: "Steam vent",
+            safeLine:
+              "A hot vent hisses, but your steam charm muffles it into a polite little whisper.",
+            unsafeIntro:
+              "A hidden vent erupts, blasting hot steam that shrieks like an angry kettle.",
+          },
+          {
+            id: "chest",
+            icon: "💰",
+            name: "Tipping chest",
+            safeLine:
+              "A treasure chest wobbles, but your chest charm tightens the hinges and keeps it quiet.",
+            unsafeIntro:
+              "You bump a chest and it tips over, coins spilling in a noisy golden waterfall.",
+          },
+          {
+            id: "bone",
+            icon: "🦴",
+            name: "Kobold bone",
+            safeLine:
+              "A kobold bone teeters on a rock, but your bone charm steadies it at the last second.",
+            unsafeIntro:
+              "A kobold’s bone skitters across the floor like a runaway xylophone stick.",
+          },
+          {
+            id: "armor",
+            icon: "🛡️",
+            name: "Falling armor",
+            safeLine:
+              "A pile of armor clinks softly, soothed by the shimmer of your shield charm.",
+            unsafeIntro:
+              "A leaning suit of armor collapses into a full-volume clang symphony.",
+          },
+          {
+            id: "dragonlings",
+            icon: "🐲",
+            name: "Baby dragonlings",
+            safeLine:
+              "A baby dragonling snorts, then your dragonling charm coos it back into a gentle snore.",
+            unsafeIntro:
+              "A tiny dragonling snorts, snuffles, and sneezes a puff of sparks from its nostrils.",
+          },
+          {
+            id: "magiccoins",
+            icon: "🌀",
+            name: "Humming coins",
+            safeLine:
+              "Enchanted coins begin to hum, but your spiral coin charm joins in and the sound fades to nothing.",
+            unsafeIntro:
+              "A stack of enchanted coins starts humming, the pitch rising like a nervous choir.",
+          },
+          {
+            id: "gems",
+            icon: "💎",
+            name: "Tumbling gems",
+            safeLine:
+              "A loose gem skitters away, but your jewel charm cushions the tumble into silence.",
+            unsafeIntro:
+              "A cluster of gems tumbles down a pile, chiming like a cascade of glass bells.",
+          },
+          {
+            id: "eggshell",
+            icon: "🥚",
+            name: "Eggshell crunch",
+            safeLine:
+              "An eggshell crackles underfoot, but your egg charm mends the sound before it echoes.",
+            unsafeIntro:
+              "Your boot lands squarely on an old eggshell; the crunch sounds suspiciously dragon-sized.",
+          },
+          {
+            id: "sigil",
+            icon: "✨",
+            name: "Hissing sigil",
+            safeLine:
+              "A glowing rune flickers, then relaxes when it recognizes your matching sigil charm.",
+            unsafeIntro:
+              "A floor sigil flares and hisses, tracing bright lines right under your boots.",
+          },
+          {
+            id: "cat",
+            icon: "🐱",
+            name: "Cave cat roar",
+            safeLine:
+              "The cave cat twitches an ear, then purrs under the soothing aura of your cat charm.",
+            unsafeIntro:
+              "A cave cat leaps from a ledge and lets out a startling roar-meow combo.",
+          },
+          {
+            id: "trophies",
+            icon: "🏆",
+            name: "Rattling trophies",
+            safeLine:
+              "A rack of trophies trembles, then settles after your trophy charm gives them a ghostly high-five.",
+            unsafeIntro:
+              "A whole shelf of trophies rattles and clanks like applause from the shadows.",
+          },
+          {
+            id: "ring",
+            icon: "💍",
+            name: "Cursed ring whisper",
+            safeLine:
+              "The cursed ring mutters, but your ring charm shushes it like a strict librarian.",
+            unsafeIntro:
+              "A cursed ring begins whispering loudly about everyone’s secrets.",
+          },
+        ];
+
+        const NOISE_EVENTS_BY_ID = new Map();
+        const NOISE_EVENTS_BY_ICON = new Map();
+        NOISE_EVENTS.forEach((evt) => {
+          NOISE_EVENTS_BY_ID.set(evt.id, evt);
+          NOISE_EVENTS_BY_ICON.set(evt.icon, evt);
+        });
+
+        // Perimeter coordinates for 6x6 grid path, indices 0..19
+        const PERIMETER_COORDS = [
+          { row: 6, col: 1 }, // 0: start
+          { row: 6, col: 2 },
+          { row: 6, col: 3 },
+          { row: 6, col: 4 },
+          { row: 6, col: 5 },
+          { row: 6, col: 6 },
+          { row: 5, col: 6 },
+          { row: 4, col: 6 },
+          { row: 3, col: 6 },
+          { row: 2, col: 6 },
+          { row: 1, col: 6 },
+          { row: 1, col: 5 },
+          { row: 1, col: 4 },
+          { row: 1, col: 3 },
+          { row: 1, col: 2 },
+          { row: 1, col: 1 },
+          { row: 2, col: 1 },
+          { row: 3, col: 1 },
+          { row: 4, col: 1 },
+          { row: 5, col: 1 }, // 19: treasure
+        ];
+
+        function randomInt(min, max) {
+          return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffleArray(arr) {
+          const copy = arr.slice();
+          for (let i = copy.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+          }
+          return copy;
+        }
+
+        function colorName(color) {
+          return COLOR_LABEL[color] || color;
+        }
+
+        /* =========================
+           Game state
+           ========================= */
+
+        const initialState = {
+          players: [],
+          currentPlayerIndex: 0,
+          hasStarted: false,
+          hasWinner: false,
+          pathTiles: [],
+          tileElements: [],
+          wakeThreshold: 0,
+          currentPressCount: 0,
+          dragonHasBeenAwakened: false,
+          pendingPresses: 0,
+          awaitingCrystal: false,
+          lastSpinResult: null,
+          isSpinning: false,
+          spinnerAnimationId: null,
+          isMuted: false,
+        };
+
+        const state = {
+          ...initialState,
+        };
+
+        /* =========================
+           DOM references
+           ========================= */
+
+        const boardEl = document.getElementById("board");
+        const dragonImageEl = document.getElementById("dragon-image");
+        const crystalButton = document.getElementById("crystal-button");
+        const crystalStatusEl = document.getElementById("crystal-status");
+
+        const setupPanelEl = document.getElementById("setup-panel");
+        const setupFormEl = document.getElementById("setup-form");
+        const startGameBtn = document.getElementById("start-game-btn");
+        const setupErrorEl = document.getElementById("setup-error");
+
+        const gamePanelEl = document.getElementById("game-panel");
+        const currentPlayerLabelEl = document.getElementById("current-player-label");
+        const spinnerResultTextEl = document.getElementById("spinner-result-text");
+        const spinnerVisualEl = document.getElementById("spinner-visual");
+        const spinnerDisplayEl = document.getElementById("spinner-display");
+        const spinButton = document.getElementById("spin-button");
+        const playerSummaryEl = document.getElementById("player-summary");
+        const newGameBtn = document.getElementById("new-game-btn");
+        const muteSoundsBtn = document.getElementById("mute-sounds-btn");
+        const lastActionLogEl = document.getElementById("last-action-log");
+
+        const themeToggleBtn = document.getElementById("theme-toggle");
+        const themeToggleTextEl = themeToggleBtn.querySelector(".theme-toggle-text");
+
+        const modalBackdrop = document.getElementById("modal");
+        const modalTitleEl = document.getElementById("modal-title");
+        const modalMessageEl = document.getElementById("modal-message");
+        const closeModalBtn = document.getElementById("close-modal-btn");
+        const bugReportActionsEl = document.getElementById("bug-report-actions");
+        const bugReportLinkBtn = document.getElementById("bug-report-link-btn");
+        const bugReportCancelBtn = document.getElementById("bug-report-cancel-btn");
+        const bugReportConfirmBtn = document.getElementById("bug-report-confirm-btn");
+
+        // Audio elements
+        const audioStar = document.getElementById("audio-star");
+        const audioFanfare = document.getElementById("audio-fanfare");
+        const audioCrystal = document.getElementById("audio-crystal");
+        const audioAlarm = document.getElementById("audio-alarm");
+        const audioDragonRoar = document.getElementById("audio-dragon-roar");
+
+        const NOISE_AUDIO_MAP = new Map();
+        document.querySelectorAll("[data-noise-id]").forEach((el) => {
+          NOISE_AUDIO_MAP.set(el.dataset.noiseId, el);
+        });
+
+        /* =========================
+           Modal / dialog handling
+           ========================= */
+
+        let modalIsOpen = false;
+        let modalMode = "game"; // "game" or "bug"
+        let modalAfterCloseFn = null;
+
+        function openModalBase() {
+          modalBackdrop.classList.add("is-open");
+          modalBackdrop.setAttribute("aria-hidden", "false");
+          modalIsOpen = true;
+        }
+
+        function closeModalBase() {
+          modalBackdrop.classList.remove("is-open");
+          modalBackdrop.setAttribute("aria-hidden", "true");
+          modalIsOpen = false;
+
+          const fn = modalAfterCloseFn;
+          modalAfterCloseFn = null;
+          if (typeof fn === "function") {
+            fn();
+          }
+        }
+
+        function showGameModal(title, message, onClose) {
+          modalMode = "game";
+          modalTitleEl.textContent = title;
+          modalMessageEl.textContent = message;
+          closeModalBtn.classList.remove("hidden-visually");
+          bugReportActionsEl.classList.add("hidden-visually");
+
+          modalAfterCloseFn = onClose || null;
+          openModalBase();
+          closeModalBtn.focus();
+        }
+
+        function openBugReportModal() {
+          modalMode = "bug";
+          const pageTitle = document.title || "Don’t Wake the Dragon";
+          const subject = "Bug Report - " + pageTitle;
+          const encodedSubject = encodeURIComponent(subject);
+          const gmailUrl =
+            "https://mail.google.com/mail/?view=cm&fs=1&to=dnavas@lps.org&su=" + encodedSubject;
+
+          bugReportConfirmBtn.dataset.gmailUrl = gmailUrl;
+
+          modalTitleEl.textContent = "Report a Bug";
+          modalMessageEl.textContent =
+            "This will open Gmail in a new tab with a bug report email. Is that OK?";
+
+          closeModalBtn.classList.add("hidden-visually");
+          bugReportActionsEl.classList.remove("hidden-visually");
+
+          modalAfterCloseFn = null;
+          openModalBase();
+          bugReportCancelBtn.focus();
+        }
+
+        function closeBugReportModal() {
+          closeModalBtn.classList.remove("hidden-visually");
+          bugReportActionsEl.classList.add("hidden-visually");
+          modalMode = "game";
+          closeModalBase();
+        }
+
+        closeModalBtn.addEventListener("click", () => {
+          if (modalMode === "game") {
+            closeModalBase();
+          } else {
+            closeBugReportModal();
+          }
+        });
+
+        modalBackdrop.addEventListener("click", (event) => {
+          if (event.target === modalBackdrop && modalIsOpen) {
+            if (modalMode === "game") {
+              closeModalBase();
+            } else {
+              closeBugReportModal();
+            }
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && modalIsOpen) {
+            if (modalMode === "game") {
+              closeModalBase();
+            } else {
+              closeBugReportModal();
+            }
+          }
+        });
+
+        /* =========================
+           Bug report logic
+           ========================= */
+
+        bugReportLinkBtn.addEventListener("click", () => {
+          openBugReportModal();
+        });
+
+        bugReportCancelBtn.addEventListener("click", () => {
+          closeBugReportModal();
+        });
+
+        bugReportConfirmBtn.addEventListener("click", () => {
+          const url = bugReportConfirmBtn.dataset.gmailUrl;
+          if (url) {
+            window.open(url, "_blank", "noopener");
+          }
+          closeBugReportModal();
+        });
+
+        /* =========================
+           Audio helpers
+           ========================= */
+
+        function playSound(audioEl) {
+          if (!audioEl || state.isMuted) return;
+          try {
+            audioEl.currentTime = 0;
+            audioEl.play().catch(() => {
+              // Autoplay errors can be safely ignored.
+            });
+          } catch {
+            // Defensive no-op.
+          }
+        }
+
+        muteSoundsBtn.addEventListener("click", () => {
+          state.isMuted = !state.isMuted;
+          muteSoundsBtn.textContent = state.isMuted ? "🔇 Sounds off" : "🔈 Sounds on";
+        });
+
+        /* =========================
+           Theme toggle logic
+           ========================= */
+
+        function setTheme(theme) {
+          const clean = theme === "light" ? "light" : "dark";
+          document.body.dataset.theme = clean;
+          if (clean === "dark") {
+            themeToggleTextEl.textContent = "Switch to light mode";
+            themeToggleBtn.firstElementChild.textContent = "🌙";
+          } else {
+            themeToggleTextEl.textContent = "Switch to dark mode";
+            themeToggleBtn.firstElementChild.textContent = "☀️";
+          }
+        }
+
+        function initTheme() {
+          const prefersDark =
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+          setTheme(prefersDark ? "dark" : "light");
+        }
+
+        themeToggleBtn.addEventListener("click", () => {
+          const current = document.body.dataset.theme || "dark";
+          const next = current === "dark" ? "light" : "dark";
+          setTheme(next);
+        });
+
+        /* =========================
+           Board generation
+           ========================= */
+
+        function createBoardModel() {
+          // Predefined color pattern for 20 tiles, roughly balanced
+          const COLOR_SEQUENCE = [
+            "yellow",
+            "green",
+            "blue",
+            "red",
+            "yellow",
+            "blue",
+            "green",
+            "red",
+            "yellow",
+            "green",
+            "blue",
+            "red",
+            "yellow",
+            "blue",
+            "green",
+            "red",
+            "yellow",
+            "green",
+            "blue",
+            "red",
+          ];
+
+          // 16 noise tiles (indices 1..16), leaving 0 (start), 17, 18, 19 mixed
+          const NOISE_INDICES = [
+            1, 2, 3, 4, 5, 6, 7, 8,
+            9, 10, 11, 12, 13, 14, 15, 16,
+          ];
+
+          state.pathTiles = COLOR_SEQUENCE.map((color, index) => {
+            const isNoise = NOISE_INDICES.includes(index);
+            return {
+              index,
+              color,
+              type: isNoise ? "noise" : "normal",
+              presses: isNoise ? randomInt(2, 6) : null,
+              noiseId: null,
+            };
+          });
+
+          // Assign each noise tile one of the 16 noise events (1:1)
+          const noiseTiles = state.pathTiles.filter((tile) => tile.type === "noise");
+          noiseTiles.forEach((tile, idx) => {
+            const noiseEvent = NOISE_EVENTS[idx % NOISE_EVENTS.length];
+            tile.noiseId = noiseEvent.id;
+          });
+        }
+
+        function createBoardDom() {
+          boardEl.innerHTML = "";
+          state.tileElements = new Array(PATH_LENGTH);
+
+          state.pathTiles.forEach((tile) => {
+            const coord = PERIMETER_COORDS[tile.index];
+            const tileEl = document.createElement("div");
+            tileEl.className = "board-tile";
+            tileEl.dataset.index = String(tile.index);
+            tileEl.dataset.color = tile.color;
+            tileEl.style.gridRowStart = String(coord.row);
+            tileEl.style.gridColumnStart = String(coord.col);
+            tileEl.setAttribute(
+              "aria-label",
+              `Tile ${tile.index + 1}, ${colorName(tile.color)}`
+            );
+            tileEl.setAttribute("role", "group");
+
+            if (tile.index === 0) {
+              tileEl.classList.add("board-tile-start");
+            }
+            if (tile.index === PATH_LENGTH - 1) {
+              tileEl.classList.add("board-tile-treasure");
+            }
+            if (tile.type === "noise") {
+              tileEl.classList.add("board-tile-noise");
+            }
+
+            const band = document.createElement("div");
+            band.className = `tile-color-band tile-color-${tile.color}`;
+            tileEl.appendChild(band);
+
+            const labels = document.createElement("div");
+            labels.className = "tile-labels";
+
+            const topRow = document.createElement("div");
+            topRow.className = "tile-label-top";
+
+            const indexSpan = document.createElement("span");
+            indexSpan.className = "tile-index";
+            indexSpan.textContent =
+              tile.index === 0
+                ? "Start"
+                : tile.index === PATH_LENGTH - 1
+                ? "Treasure"
+                : String(tile.index + 1);
+
+            const colorLetter = document.createElement("span");
+            colorLetter.className = "tile-color-letter";
+            colorLetter.textContent = colorName(tile.color)[0];
+
+            topRow.appendChild(indexSpan);
+            topRow.appendChild(colorLetter);
+
+            const bottomRow = document.createElement("div");
+            bottomRow.className = "tile-label-bottom";
+
+            if (tile.type === "noise" && tile.noiseId) {
+              const noiseConfig = NOISE_EVENTS_BY_ID.get(tile.noiseId);
+              const iconSpan = document.createElement("span");
+              iconSpan.className = "tile-noise-icon";
+              iconSpan.textContent = noiseConfig && noiseConfig.icon ? noiseConfig.icon : "⚠️";
+
+              const pressSpan = document.createElement("span");
+              pressSpan.className = "tile-press-count";
+              pressSpan.textContent = String(tile.presses || 0);
+              pressSpan.title =
+                "Press the alarm crystal this many times if the dragon is disturbed.";
+
+              bottomRow.appendChild(iconSpan);
+              bottomRow.appendChild(pressSpan);
+            }
+
+            labels.appendChild(topRow);
+            labels.appendChild(bottomRow);
+
+            tileEl.appendChild(labels);
+
+            const piecesContainer = document.createElement("div");
+            piecesContainer.className = "tile-pieces";
+            tileEl.appendChild(piecesContainer);
+
+            state.tileElements[tile.index] = tileEl;
+            boardEl.appendChild(tileEl);
+          });
+        }
+
+        /* =========================
+           Player setup and dealing noise icons
+           ========================= */
+
+        function collectPlayersFromSetup() {
+          const players = [];
+
+          for (let i = 1; i <= MAX_PLAYERS; i += 1) {
+            const nameInput = document.getElementById(`player-${i}-name`);
+            const emojiSelect = document.getElementById(`player-${i}-emoji`);
+            if (!nameInput || !emojiSelect) continue;
+
+            const name = nameInput.value.trim();
+            const emoji = emojiSelect.value.trim();
+
+            if (name && emoji) {
+              players.push({
+                id: i,
+                name,
+                emoji,
+                positionIndex: 0,
+                icons: [], // noise charms dealt later
+                isStuck: false,
+              });
+            }
+          }
+
+          return players;
+        }
+
+        function validatePlayersForStart(players) {
+          if (players.length < MIN_PLAYERS) {
+            return "Please configure at least 2 players with a name and a hero token.";
+          }
+          if (players.length > MAX_PLAYERS) {
+            return "You can only have up to 4 players.";
+          }
+
+          const usedEmojis = new Set();
+          for (const p of players) {
+            if (usedEmojis.has(p.emoji)) {
+              return "Each player must choose a unique hero emoji token.";
+            }
+            usedEmojis.add(p.emoji);
+          }
+          return "";
+        }
+
+        // Deal 16 distinct noise emojis evenly across players (leftover icons, if any, are unused)
+        function dealNoiseIconsToPlayers(players) {
+          const deck = NOISE_EVENTS.map((evt) => evt.icon); // 16 unique icons
+          const shuffled = shuffleArray(deck);
+          const numPlayers = players.length;
+          const baseIconsPerPlayer = Math.floor(deck.length / numPlayers);
+          let index = 0;
+
+          players.forEach((player) => {
+            const icons = [];
+            for (let j = 0; j < baseIconsPerPlayer; j += 1) {
+              if (index < shuffled.length) {
+                icons.push(shuffled[index]);
+                index += 1;
+              }
+            }
+            player.icons = icons;
+          });
+
+          // Any leftover icons simply remain in the dragon's hoard for this game.
+          return players;
+        }
+
+        function setCrystalThreshold() {
+          state.wakeThreshold = randomInt(10, 20);
+          state.currentPressCount = 0;
+          state.dragonHasBeenAwakened = false;
+          updateCrystalStatus();
+        }
+
+        function updateCrystalStatus() {
+          if (!state.dragonHasBeenAwakened) {
+            crystalStatusEl.textContent =
+              "The alarm crystal is quiet. Total presses this game: " +
+              state.currentPressCount;
+          } else {
+            crystalStatusEl.textContent =
+              "The dragon has already been startled once this game. Presses so far: " +
+              state.currentPressCount;
+          }
+        }
+
+        function initNewGameState() {
+          const savedMute = state.isMuted;
+          Object.keys(initialState).forEach((key) => {
+            state[key] = initialState[key];
+          });
+          state.isMuted = savedMute;
+
+          createBoardModel();
+          createBoardDom();
+          setCrystalThreshold();
+          spinnerDisplayEl.textContent = "–";
+          spinnerResultTextEl.textContent = "No spins yet";
+          lastActionLogEl.textContent =
+            "Set up your heroes and click “Start game” to be dealt noise charms.";
+          updateCrystalStatus();
+        }
+
+        /* =========================
+           Rendering helpers
+           ========================= */
+
+        function updatePlayerPieces() {
+          state.tileElements.forEach((tileEl) => {
+            if (!tileEl) return;
+            const holder = tileEl.querySelector(".tile-pieces");
+            if (holder) holder.innerHTML = "";
+          });
+
+          const byTile = new Map();
+          state.players.forEach((player, playerIndex) => {
+            const listForTile = byTile.get(player.positionIndex) || [];
+            listForTile.push({ player, playerIndex });
+            byTile.set(player.positionIndex, listForTile);
+          });
+
+          byTile.forEach((entries, tileIndex) => {
+            const tileEl = state.tileElements[tileIndex];
+            if (!tileEl) return;
+            const holder = tileEl.querySelector(".tile-pieces");
+            if (!holder) return;
+
+            entries.forEach((entry, idx) => {
+              const piece = document.createElement("span");
+              piece.className = "player-piece";
+              piece.textContent = entry.player.emoji;
+              piece.style.setProperty("--offset-index", String(idx));
+              piece.setAttribute(
+                "aria-label",
+                entry.player.name +
+                  " at tile " +
+                  (entry.player.positionIndex + 1)
+              );
+              holder.appendChild(piece);
+            });
+          });
+        }
+
+        function renderPlayerSummary() {
+          playerSummaryEl.innerHTML = "";
+
+          state.players.forEach((player, index) => {
+            const card = document.createElement("article");
+            card.className = "player-summary-card";
+            if (!state.hasWinner && index === state.currentPlayerIndex) {
+              card.classList.add("is-current");
+            }
+
+            const main = document.createElement("div");
+            main.className = "player-summary-main";
+
+            const nameLine = document.createElement("div");
+            nameLine.className = "player-name-line";
+
+            const tokenSpan = document.createElement("span");
+            tokenSpan.className = "player-token-display";
+            tokenSpan.textContent = player.emoji;
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "player-name-text";
+            nameSpan.textContent = player.name;
+
+            nameLine.appendChild(tokenSpan);
+            nameLine.appendChild(nameSpan);
+
+            const posSpan = document.createElement("span");
+            posSpan.className = "player-position-text";
+            const posIndex = player.positionIndex;
+            if (posIndex === 0) {
+              posSpan.textContent = "At start";
+            } else if (posIndex === PATH_LENGTH - 1) {
+              posSpan.textContent = "At the treasure chamber";
+            } else {
+              posSpan.textContent = "On tile " + (posIndex + 1);
+            }
+
+            main.appendChild(nameLine);
+            main.appendChild(posSpan);
+
+            const cardsContainer = document.createElement("div");
+            cardsContainer.className = "player-cards";
+
+            const cardsLabel = document.createElement("span");
+            cardsLabel.className = "player-cards-label";
+            cardsLabel.textContent = "Charms:";
+            cardsContainer.appendChild(cardsLabel);
+
+            const icons = Array.isArray(player.icons) ? player.icons : [];
+            if (icons.length === 0) {
+              const none = document.createElement("span");
+              none.textContent = "—";
+              none.className = "card-emoji";
+              none.setAttribute("aria-label", "No noise charms yet");
+              cardsContainer.appendChild(none);
+            } else {
+              icons.forEach((icon) => {
+                const evt = NOISE_EVENTS_BY_ICON.get(icon);
+                const span = document.createElement("span");
+                span.className = "card-emoji";
+                span.textContent = icon;
+                const label = evt
+                  ? evt.name + " charm"
+                  : "Noise charm";
+                span.title = label;
+                span.setAttribute("aria-label", label);
+                cardsContainer.appendChild(span);
+              });
+            }
+
+            const rightSide = document.createElement("div");
+            rightSide.appendChild(cardsContainer);
+
+            card.appendChild(main);
+            card.appendChild(rightSide);
+            playerSummaryEl.appendChild(card);
+          });
+        }
+
+        function updateTurnSummary() {
+          if (state.players.length === 0) {
+            currentPlayerLabelEl.textContent = "—";
+            return;
+          }
+          const current = state.players[state.currentPlayerIndex];
+          currentPlayerLabelEl.textContent = current.name + " " + current.emoji;
+          renderPlayerSummary();
+        }
+
+        function logAction(text) {
+          lastActionLogEl.textContent = text;
+        }
+
+        /* =========================
+           Spinner behaviour
+           ========================= */
+
+        function formatSpinnerSegment(segment) {
+          if (segment === "star") return "⭐";
+          return COLOR_EMOJI[segment] || "⬜";
+        }
+
+        function handleSpinClick() {
+          if (!state.hasStarted || state.hasWinner) return;
+          if (state.isSpinning) return;
+
+          if (state.awaitingCrystal && state.pendingPresses > 0) {
+            showGameModal(
+              "Finish pressing the crystal",
+              "You still need to press the alarm crystal " +
+                state.pendingPresses +
+                " more time" +
+                (state.pendingPresses === 1 ? "" : "s") +
+                " before the next player can spin.",
+              null
+            );
+            return;
+          }
+
+          state.isSpinning = true;
+          spinButton.disabled = true;
+
+          const finalIndex = randomInt(0, SPINNER_SEGMENTS.length - 1);
+          const finalSegment = SPINNER_SEGMENTS[finalIndex];
+          const totalSteps = randomInt(14, 20);
+          let step = 0;
+          let currentIndex = 0;
+
+          const tick = () => {
+            const seg =
+              SPINNER_SEGMENTS[currentIndex % SPINNER_SEGMENTS.length];
+            spinnerDisplayEl.textContent = formatSpinnerSegment(seg);
+            currentIndex += 1;
+            step += 1;
+
+            if (step >= totalSteps) {
+              spinnerDisplayEl.textContent = formatSpinnerSegment(finalSegment);
+              state.lastSpinResult = finalSegment;
+
+              const label =
+                finalSegment === "star" ? "⭐ Star" : colorName(finalSegment);
+              spinnerResultTextEl.textContent = label;
+
+              window.clearInterval(state.spinnerAnimationId);
+              state.spinnerAnimationId = null;
+              state.isSpinning = false;
+
+              resolveSpinResult(finalSegment);
+            }
+          };
+
+          state.spinnerAnimationId = window.setInterval(tick, 90);
+        }
+
+        function resolveSpinResult(segment) {
+          if (segment === "star") {
+            handleStarSpin();
+          } else {
+            handleColorSpin(segment);
+          }
+        }
+
+        function handleStarSpin() {
+          const numPlayers = state.players.length;
+          if (numPlayers === 0) return;
+
+          const current = state.players[state.currentPlayerIndex];
+
+          let leaderPos = -1;
+          let leaderIndex = -1;
+          state.players.forEach((p, idx) => {
+            if (p.positionIndex > leaderPos) {
+              leaderPos = p.positionIndex;
+              leaderIndex = idx;
+            }
+          });
+
+          if (leaderIndex === state.currentPlayerIndex) {
+            playSound(audioStar);
+            showGameModal(
+              "You spun the star!",
+              current.name +
+                " is already in the lead. Spin again!",
+              () => {
+                logAction(
+                  current.name +
+                    " spun the star but is already leading. They may spin again."
+                );
+              }
+            );
+            spinButton.disabled = false;
+            return;
+          }
+
+          const newPos = leaderPos > 0 ? leaderPos - 1 : 0;
+          current.positionIndex = newPos;
+          updatePlayerPieces();
+          updateTurnSummary();
+          playSound(audioStar);
+
+          showGameModal(
+            "Star leap!",
+            current.name +
+              " spins the star and jumps to the space right behind the leader!",
+            () => {
+              logAction(
+                current.name +
+                  " used the star to leap ahead to tile " +
+                  (newPos + 1) +
+                  "."
+              );
+              advanceTurn();
+            }
+          );
+        }
+
+        function handleColorSpin(color) {
+          const current = state.players[state.currentPlayerIndex];
+          const startPos = current.positionIndex;
+
+          let destinationIndex = -1;
+          for (let i = startPos + 1; i < PATH_LENGTH; i += 1) {
+            if (state.pathTiles[i].color === color) {
+              destinationIndex = i;
+              break;
+            }
+          }
+
+          if (destinationIndex === -1) {
+            destinationIndex = startPos;
+          }
+
+          current.positionIndex = destinationIndex;
+          updatePlayerPieces();
+          updateTurnSummary();
+
+          if (destinationIndex === startPos) {
+            showGameModal(
+              "No matching tile ahead",
+              current.name +
+                " spins " +
+                colorName(color) +
+                " but there is no matching tile ahead. They stay put.",
+              () => {
+                logAction(
+                  current.name +
+                    " stayed on tile " +
+                    (startPos + 1) +
+                    "."
+                );
+                advanceTurn();
+              }
+            );
+            return;
+          }
+
+          if (destinationIndex === PATH_LENGTH - 1) {
+            handlePlayerWin(state.currentPlayerIndex);
+            return;
+          }
+
+          evaluateLandingTile(destinationIndex);
+        }
+
+        /* =========================
+           Noise tile & crystal logic
+           ========================= */
+
+        function evaluateLandingTile(tileIndex) {
+          const tile = state.pathTiles[tileIndex];
+          const player = state.players[state.currentPlayerIndex];
+
+          if (!tile || !player) return;
+
+          // Quiet tiles
+          if (tile.type !== "noise") {
+            showGameModal(
+              "Quiet step",
+              player.name +
+                " tiptoes forward. No noisy trinkets here.",
+              () => {
+                logAction(
+                  player.name +
+                    " landed safely on tile " +
+                    (tileIndex + 1) +
+                    "."
+                );
+                advanceTurn();
+              }
+            );
+            return;
+          }
+
+          const noiseEvent = NOISE_EVENTS_BY_ID.get(tile.noiseId);
+          const icon = noiseEvent ? noiseEvent.icon : "🎭";
+
+          const playerIcons = Array.isArray(player.icons) ? player.icons : [];
+          const hasMatchingCharm =
+            noiseEvent && playerIcons.includes(icon);
+
+          // SAFE: player has matching emoji charm
+          if (hasMatchingCharm) {
+            const message =
+              noiseEvent && noiseEvent.safeLine
+                ? noiseEvent.safeLine
+                : player.name +
+                  " steps on the " +
+                  icon +
+                  " noise tile, but their matching charm keeps everything quiet. No crystal presses this time.";
+
+            showGameModal(
+              "Charm protects you!",
+              message,
+              () => {
+                logAction(
+                  player.name +
+                    " landed on the " +
+                    icon +
+                    " noise tile but had the matching charm, so the dragon stayed asleep."
+                );
+                advanceTurn();
+              }
+            );
+            return;
+          }
+
+          // UNSAFE: no charm yet — steal it from whoever has it, then press crystal
+          let donorName = null;
+
+          for (let i = 0; i < state.players.length; i += 1) {
+            if (i === state.currentPlayerIndex) continue;
+            const other = state.players[i];
+            const icons = Array.isArray(other.icons) ? other.icons : [];
+            const pos = icons.indexOf(icon);
+            if (pos !== -1) {
+              icons.splice(pos, 1);
+              if (!Array.isArray(player.icons)) {
+                player.icons = [];
+              }
+              player.icons.push(icon);
+              donorName = other.name;
+              break;
+            }
+          }
+
+          renderPlayerSummary();
+          playSound(NOISE_AUDIO_MAP.get(tile.noiseId));
+
+          state.awaitingCrystal = true;
+          state.pendingPresses = tile.presses || 0;
+          crystalButton.classList.add("crystal-highlight");
+
+          const pressesText =
+            tile.presses === 1
+              ? "Press the alarm crystal 1 time."
+              : "Press the alarm crystal " +
+                tile.presses +
+                " times.";
+
+          const intro =
+            noiseEvent && noiseEvent.unsafeIntro
+              ? noiseEvent.unsafeIntro
+              : player.name +
+                " stumbles onto a noisy " +
+                icon +
+                " tile.";
+
+          let extra;
+          if (donorName) {
+            extra =
+              " " +
+              player.name +
+              " doesn’t have the matching " +
+              icon +
+              " charm, so they snatch it from " +
+              donorName +
+              ". " +
+              pressesText +
+              " If the crystal finally screams, the dragon will fling them back to the start.";
+          } else {
+            extra =
+              " " +
+              player.name +
+              " doesn’t have the matching " +
+              icon +
+              " charm and no one else does either — the dragon is listening closely. " +
+              pressesText +
+              " If the crystal erupts, hurry back to the start.";
+          }
+
+          const message = intro + extra;
+
+          showGameModal(
+            "Cave noise!",
+            message,
+            () => {
+              logAction(
+                player.name +
+                  " landed on the " +
+                  icon +
+                  " noise tile and must press the crystal " +
+                  state.pendingPresses +
+                  " time" +
+                  (state.pendingPresses === 1 ? "" : "s") +
+                  "."
+              );
+              spinButton.disabled = true;
+            }
+          );
+        }
+
+        function handleCrystalPress() {
+          if (!state.awaitingCrystal) {
+            showGameModal(
+              "No pressing needed",
+              "No one has disturbed the cave right now, so the alarm crystal doesn’t need to be pressed.",
+              null
+            );
+            return;
+          }
+
+          if (state.pendingPresses <= 0) {
+            state.awaitingCrystal = false;
+            crystalButton.classList.remove("crystal-highlight");
+            spinButton.disabled = false;
+            return;
+          }
+
+          state.pendingPresses -= 1;
+
+          if (!state.dragonHasBeenAwakened) {
+            state.currentPressCount += 1;
+          }
+          updateCrystalStatus();
+          playSound(audioCrystal);
+
+          const player = state.players[state.currentPlayerIndex];
+
+          // Dragon wakes only once per game
+          if (
+            !state.dragonHasBeenAwakened &&
+            state.currentPressCount >= state.wakeThreshold
+          ) {
+            state.dragonHasBeenAwakened = true;
+            playSound(audioAlarm);
+            playSound(audioDragonRoar);
+
+            const awakeSrc =
+              dragonImageEl.dataset.srcAwake ||
+              dragonImageEl.getAttribute("data-src-awake");
+            if (awakeSrc) {
+              dragonImageEl.src = awakeSrc;
+              dragonImageEl.alt =
+                "The dragon jolts awake and roars in anger.";
+            }
+
+            player.positionIndex = 0;
+            updatePlayerPieces();
+            renderPlayerSummary();
+            spinButton.disabled = true;
+            state.pendingPresses = 0;
+            state.awaitingCrystal = false;
+            crystalButton.classList.remove("crystal-highlight");
+
+            const msg =
+              "The alarm crystal erupts in blinding light! The dragon jolts awake and unleashes a roar at " +
+              player.name +
+              ", blasting them all the way back to the start of the cave.";
+
+            showGameModal(
+              "The dragon wakes!",
+              msg,
+              () => {
+                logAction(
+                  player.name +
+                    " woke the dragon and was sent back to the start."
+                );
+                const sleepSrc =
+                  dragonImageEl.dataset.srcSleeping ||
+                  dragonImageEl.getAttribute("data-src-sleeping");
+                if (sleepSrc) {
+                  dragonImageEl.src = sleepSrc;
+                  dragonImageEl.alt =
+                    "The dragon has settled back to sleep in the middle of the board.";
+                }
+                advanceTurn();
+              }
+            );
+            return;
+          }
+
+          if (state.pendingPresses <= 0) {
+            state.awaitingCrystal = false;
+            crystalButton.classList.remove("crystal-highlight");
+            spinButton.disabled = false;
+
+            showGameModal(
+              "Dragon still asleep",
+              player.name +
+                " finishes pressing the crystal. The dragon snorts, but stays asleep.",
+              () => {
+                logAction(
+                  player.name +
+                    " pressed the crystal and the dragon stayed asleep."
+                );
+                advanceTurn();
+              }
+            );
+          } else {
+            logAction(
+              player.name +
+                " presses the crystal. " +
+                state.pendingPresses +
+                " more press" +
+                (state.pendingPresses === 1 ? "" : "es") +
+                " needed."
+            );
+          }
+        }
+
+        /* =========================
+           Turn + win handling
+           ========================= */
+
+        function advanceTurn() {
+          if (state.hasWinner) {
+            spinButton.disabled = true;
+            return;
+          }
+          if (state.players.length === 0) return;
+
+          state.currentPlayerIndex =
+            (state.currentPlayerIndex + 1) % state.players.length;
+          updateTurnSummary();
+          spinButton.disabled = false;
+        }
+
+        function handlePlayerWin(playerIndex) {
+          const player = state.players[playerIndex];
+          state.hasWinner = true;
+          spinButton.disabled = true;
+
+          playSound(audioFanfare);
+
+          const title = "You’ve stolen the dragon’s treasure!";
+          const message =
+            player.name +
+            " " +
+            player.emoji +
+            " reaches the treasure chamber first and hauls away the loot.";
+
+          showGameModal(title, message, () => {
+            logAction(
+              player.name +
+                " wins the game and escapes with the treasure!"
+            );
+          });
+        }
+
+        /* =========================
+           Game start / reset
+           ========================= */
+
+        function startGameFromSetup() {
+          const players = collectPlayersFromSetup();
+          const validationError = validatePlayersForStart(players);
+
+          if (validationError) {
+            setupErrorEl.textContent = validationError;
+            return;
+          }
+
+          setupErrorEl.textContent = "";
+
+          initNewGameState();
+          state.players = players;
+          state.currentPlayerIndex = 0;
+          state.hasStarted = true;
+          state.hasWinner = false;
+
+          state.players = dealNoiseIconsToPlayers(players);
+
+          state.players.forEach((player) => {
+            player.positionIndex = 0;
+          });
+
+          updatePlayerPieces();
+          renderPlayerSummary();
+          updateTurnSummary();
+
+          setupPanelEl.classList.add("hidden-visually");
+          gamePanelEl.classList.remove("hidden-visually");
+
+          spinButton.disabled = false;
+
+          logAction(
+            "Adventure begins! Noise charms have been dealt — match your emojis to the noisy tiles to stay safe."
+          );
+        }
+
+        startGameBtn.addEventListener("click", () => {
+          startGameFromSetup();
+        });
+
+        function resetToSetup() {
+          initNewGameState();
+          state.hasStarted = false;
+          state.hasWinner = false;
+          spinButton.disabled = true;
+
+          setupPanelEl.classList.remove("hidden-visually");
+          gamePanelEl.classList.add("hidden-visually");
+
+          logAction(
+            "Game reset. Adjust players if you like, then start a new adventure."
+          );
+        }
+
+        newGameBtn.addEventListener("click", () => {
+          showGameModal(
+            "Reset game?",
+            "This will reset the board and let you configure players again.",
+            () => {
+              resetToSetup();
+            }
+          );
+        });
+
+        /* =========================
+           Event wiring & init
+           ========================= */
+
+        spinButton.addEventListener("click", handleSpinClick);
+        crystalButton.addEventListener("click", handleCrystalPress);
+
+        spinnerVisualEl.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            spinButton.click();
+          }
+        });
+        spinnerVisualEl.tabIndex = 0;
+
+        setupFormEl.addEventListener("submit", (event) => {
+          event.preventDefault();
+        });
+
+        function init() {
+          initTheme();
+          initNewGameState();
+        }
+
+        init();
+      })();
+    </script>
+  </div>
+</body>
+</html>
